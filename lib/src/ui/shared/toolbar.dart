@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide TabItem;
+import 'package:shadcn_flutter/shadcn_flutter_extension.dart';
 import 'package:uuid/uuid.dart';
 
 import 'custom_tab.dart';
@@ -55,7 +56,10 @@ class FlToolbar extends StatelessWidget {
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              Assets.icons.add.svg(width: 16),
+                              Assets.icons.add.svg(
+                                width: 16,
+                                color: context.theme.colorScheme.foreground,
+                              ),
                               Positioned(
                                 bottom: -10,
                                 right: -10,
@@ -84,7 +88,10 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Assets.icons.arrow.svg(width: 16, color: Colors.white),
+                        Assets.icons.arrow.svg(
+                          width: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
                         Positioned(
                           bottom: -10,
                           right: -10,
@@ -100,7 +107,10 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Assets.icons.square.svg(width: 16, color: Colors.white),
+                        Assets.icons.square.svg(
+                          width: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
                         Positioned(
                           bottom: -10,
                           right: -10,
@@ -116,7 +126,10 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Assets.icons.circle.svg(width: 16, color: Colors.white),
+                        Assets.icons.circle.svg(
+                          width: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
                         Positioned(
                           bottom: -10,
                           right: -10,
@@ -134,7 +147,7 @@ class FlToolbar extends StatelessWidget {
                       children: [
                         Assets.icons.arrowTopRight.svg(
                           width: 16,
-                          color: Colors.white,
+                          color: context.theme.colorScheme.foreground,
                         ),
                         Positioned(
                           bottom: -10,
@@ -151,7 +164,10 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Assets.icons.line.svg(width: 16, color: Colors.white),
+                        Assets.icons.line.svg(
+                          width: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
                         Positioned(
                           bottom: -10,
                           right: -10,
@@ -167,7 +183,10 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Assets.icons.pencil.svg(width: 16, color: Colors.white),
+                        Assets.icons.pencil.svg(
+                          width: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
                         Positioned(
                           bottom: -10,
                           right: -10,
@@ -183,7 +202,10 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Assets.icons.text.svg(width: 16, color: Colors.white),
+                        Assets.icons.text.svg(
+                          width: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
                         Positioned(
                           bottom: -10,
                           right: -10,
@@ -210,7 +232,10 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Assets.icons.figure.svg(width: 16, color: Colors.white),
+                        Assets.icons.figure.svg(
+                          width: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
                         Positioned(
                           bottom: -10,
                           right: -10,
@@ -229,7 +254,7 @@ class FlToolbar extends StatelessWidget {
                       children: [
                         Assets.icons.comment.svg(
                           width: 16,
-                          color: Colors.white,
+                          color: context.theme.colorScheme.foreground,
                         ),
                         Positioned(
                           bottom: -10,

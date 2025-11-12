@@ -123,7 +123,7 @@ SubmitButton -> Instructions
         },
         child: Stack(
           children: [
-            FlDrawCanvas(),
+            FlDrawCanvas(enableGrid: false),
             Align(
               alignment: Alignment.topCenter,
               child: Padding(

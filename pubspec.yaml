@@ -1,9 +1,9 @@
 name: fldraw
 description: "The open-source tldraw alternative for building infinite canvas apps in Flutter."
 version: 0.1.0
-homepage: "https://github.com/fldraw/fldraw"
-repository: "https://github.com/fldraw/fldraw"
-issue_tracker: "https://github.com/fldraw/fldraw/issues"
+homepage: "https://github.com/Ruchit-Xaana/flutter_draw"
+repository: "https://github.com/Ruchit-Xaana/flutter_draw"
+issue_tracker: "https://github.com/Ruchit-Xaana/flutter_draw"
 
 environment:
   sdk: ^3.8.0
@@ -20,7 +20,7 @@ dependencies:
   perfect_freehand: ^2.3.2
   flutter_svg: ^2.2.0
   vector_graphics: ^1.1.19
-  shadcn_flutter: ^0.0.37
+  shadcn_flutter: ^0.0.44
 
   bloc: ^9.0.0
   equatable: ^2.0.7

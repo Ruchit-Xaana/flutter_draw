@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:fldraw/fldraw.dart';
 import 'package:fldraw/src/core/controller/fldraw_controller.dart';
+import 'package:fldraw/src/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class FlDraw extends StatefulWidget {
   final Widget child;
+  final ThemeData? theme;
   final Function(FlDrawController)? onControllerCreated;
 
   final void Function(CanvasState)? onCanvasStateChanged;
@@ -16,9 +18,11 @@ class FlDraw extends StatefulWidget {
   const FlDraw({
     super.key,
     required this.child,
+    this.theme,
     this.onCanvasStateChanged,
     this.onSelectionStateChanged,
-    this.onToolStateChanged, this.onControllerCreated,
+    this.onToolStateChanged,
+    this.onControllerCreated,
   });
 
   @override
@@ -43,7 +47,7 @@ class _FlDrawState extends State<FlDraw> {
     _toolBloc = ToolBloc();
 
     controller.init(_canvasBloc, _selectionBloc, _toolBloc);
-    if(widget.onControllerCreated != null) {
+    if (widget.onControllerCreated != null) {
       widget.onControllerCreated!(controller);
     }
 
@@ -84,7 +88,8 @@ class _FlDrawState extends State<FlDraw> {
         BlocProvider.value(value: _toolBloc),
       ],
       child: ShadcnApp(
-        theme: ThemeData(colorScheme: ColorSchemes.darkZinc(), radius: 0.7),
+        theme: widget.theme ?? themeDark(context),
+        debugShowCheckedModeBanner: false,
         home: widget.child,
       ),
     );

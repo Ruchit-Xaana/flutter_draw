@@ -14,6 +14,7 @@ class FlDrawCanvas extends StatelessWidget {
   final FlNodeHeaderBuilder? headerBuilder;
   final FlNodeBuilder? nodeBuilder;
   final bool debug;
+  final bool enableGrid;
 
   const FlDrawCanvas({
     super.key,
@@ -23,6 +24,7 @@ class FlDrawCanvas extends StatelessWidget {
     this.headerBuilder,
     this.nodeBuilder,
     this.debug = false,
+    this.enableGrid = true,
   });
 
   @override
@@ -38,6 +40,7 @@ class FlDrawCanvas extends StatelessWidget {
           Positioned.fill(
             child: FlDrawEditorDataLayer(
               fragmentShader: 'packages/fldraw/shaders/grid.frag',
+              enableGrid: enableGrid,
               headerBuilder: headerBuilder,
               nodeBuilder: nodeBuilder,
             ),

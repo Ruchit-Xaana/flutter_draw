@@ -47,12 +47,14 @@ class FlDrawEditorDataLayer extends StatefulWidget {
   final FlNodeHeaderBuilder? headerBuilder;
   final FlNodeBuilder? nodeBuilder;
   final String fragmentShader;
+  final bool enableGrid;
 
   const FlDrawEditorDataLayer({
     super.key,
     this.headerBuilder,
     this.nodeBuilder,
     required this.fragmentShader,
+    required this.enableGrid,
   });
 
   @override
@@ -1204,6 +1206,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
                           selectionState: selectionState,
                           style: const FlDrawEditorStyle(),
                           gridShader: gridShader,
+                          enableGrid: widget.enableGrid,
                           tempDrawingObject: _tempDrawingObject,
                           selectionArea: _selectionArea,
                           headerBuilder: widget.headerBuilder,
