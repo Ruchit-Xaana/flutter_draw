@@ -8,9 +8,14 @@ part 'tool_state.dart';
 class ToolBloc extends Bloc<ToolEvent, ToolState> {
   ToolBloc() : super(const ToolState()) {
     on<ToolSelected>(_onToolSelected);
+    on<LineStyleChanged>(_onLineStyleChanged);
   }
 
   void _onToolSelected(ToolSelected event, Emitter<ToolState> emit) {
-    emit(ToolState(activeTool: event.tool));
+    emit(ToolState(activeTool: event.tool, lineStyle: state.lineStyle));
+  }
+
+  void _onLineStyleChanged(LineStyleChanged event, Emitter<ToolState> emit) {
+    emit(ToolState(activeTool: state.activeTool, lineStyle: event.lineStyle));
   }
 }

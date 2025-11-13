@@ -348,20 +348,12 @@ class FlDrawEditorRenderBox extends RenderBox
   }
 
   void _paintDrawingObjects(Canvas canvas) {
-    final Paint objectPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5 / zoom;
     final Paint selectedObjectPaint = Paint()
       ..color = Colors.blue
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0 / zoom;
     final Paint selectedBorderPaint = Paint()
       ..color = Colors.blue
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0 / zoom;
-    final Paint selectedArrowPaint = Paint()
-      ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0 / zoom;
 
@@ -460,7 +452,9 @@ class FlDrawEditorRenderBox extends RenderBox
 
       if (obj is PencilStrokeObject) {
         final paint = Paint()
-          ..color = obj.isSelected ? Colors.blue : Colors.white;
+          ..color = obj.lineStyle.color.withValues(
+            alpha: obj.lineStyle.opacity,
+          );
         _paintPencilStroke(canvas, obj, paint);
 
         if (obj.isSelected) {
@@ -487,7 +481,11 @@ class FlDrawEditorRenderBox extends RenderBox
         }
         continue;
       } else if (obj is ArrowObject) {
-        final paint = obj.isSelected ? selectedArrowPaint : objectPaint;
+        final Paint arrowObjectPaint = Paint()
+          ..color = obj.lineStyle.color.withValues(alpha: obj.lineStyle.opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = obj.lineStyle.width / zoom;
+        final paint = arrowObjectPaint;
 
         var start = (obj).start;
         final startAttachment = obj.startAttachment;
@@ -569,7 +567,7 @@ class FlDrawEditorRenderBox extends RenderBox
         _paintArrowHead(canvas, controlPoint, end, paint);
 
         if (obj.isSelected) {
-          final double visibleHandleRadius = 4.0 / zoom;
+          final double visibleHandleRadius = max(obj.lineStyle.width, 4) / zoom;
           final double handleHitAreaRadius = 10.0 / zoom;
           final onCurveMidPoint =
               (start * 0.25) + (controlPoint * 0.5) + (end * 0.25);
@@ -590,7 +588,11 @@ class FlDrawEditorRenderBox extends RenderBox
         }
         continue;
       } else if (obj is LineObject) {
-        final paint = obj.isSelected ? selectedArrowPaint : objectPaint;
+        final Paint lineObjectPaint = Paint()
+          ..color = obj.lineStyle.color.withValues(alpha: obj.lineStyle.opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = obj.lineStyle.width / zoom;
+        final paint = lineObjectPaint;
 
         final controlPoint = obj.midPoint ?? (obj.start + obj.end) / 2;
 
@@ -602,7 +604,7 @@ class FlDrawEditorRenderBox extends RenderBox
         canvas.drawPath(path, paint);
 
         if (obj.isSelected) {
-          final double visibleHandleRadius = 4.0 / zoom;
+          final double visibleHandleRadius = max(obj.lineStyle.width, 4) / zoom;
           final double handleHitAreaRadius = 10.0 / zoom;
           final onCurveMidPoint =
               (obj.start * 0.25) + (controlPoint * 0.5) + (obj.end * 0.25);
@@ -619,13 +621,21 @@ class FlDrawEditorRenderBox extends RenderBox
         }
         continue;
       } else if (obj is CircleObject) {
-        canvas.drawOval(obj.rect, objectPaint);
+        final Paint circleObjectPaint = Paint()
+          ..color = obj.lineStyle.color.withValues(alpha: obj.lineStyle.opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = obj.lineStyle.width / zoom;
+        canvas.drawOval(obj.rect, circleObjectPaint);
       } else if (obj is RectangleObject) {
+        final Paint rectObjectPaint = Paint()
+          ..color = obj.lineStyle.color.withValues(alpha: obj.lineStyle.opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = obj.lineStyle.width / zoom;
         final rrect = RRect.fromRectAndRadius(
           obj.rect,
           const Radius.circular(4.0),
         );
-        canvas.drawRRect(rrect, objectPaint);
+        canvas.drawRRect(rrect, rectObjectPaint);
       } else if (obj is SvgObject) {
         canvas.save();
         canvas.translate(obj.rect.left, obj.rect.top);
@@ -741,7 +751,9 @@ class FlDrawEditorRenderBox extends RenderBox
     PencilStrokeObject object,
     Paint paint,
   ) {
-    final options = _pencilOptions.copyWith(size: 8.0 / sqrt(zoom));
+    final options = _pencilOptions.copyWith(
+      size: object.lineStyle.width / sqrt(zoom),
+    );
     final outlinePoints = getStroke(object.points, options: options);
 
     if (outlinePoints.isEmpty) {
@@ -847,10 +859,15 @@ class FlDrawEditorRenderBox extends RenderBox
 
   void _paintTempDrawingObject(Canvas canvas) {
     if (tempDrawingObject == null) return;
-    final Paint tempPaint = Paint()
+    final lineStyle = tempDrawingObject!.lineStyle;
+    final Paint originalTempPaint = Paint()
       ..color = Colors.grey.withOpacity(0.7)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5 / zoom;
+    final Paint tempPaint = Paint()
+      ..color = lineStyle.color.withValues(alpha: lineStyle.opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = lineStyle.width / zoom;
     final start = tempDrawingObject!.start;
     final end = tempDrawingObject!.end;
     final rect = Rect.fromPoints(start, end);
@@ -870,19 +887,22 @@ class FlDrawEditorRenderBox extends RenderBox
         }
         _paintArrowHead(canvas, start, end, tempPaint);
         break;
-        break;
       case EditorTool.line:
         canvas.drawLine(start, end, tempPaint);
         break;
       case EditorTool.pencil:
         _paintPencilStroke(
           canvas,
-          PencilStrokeObject(id: "temp", points: tempDrawingObject!.points),
+          PencilStrokeObject(
+            id: "temp",
+            points: tempDrawingObject!.points,
+            lineStyle: lineStyle,
+          ),
           tempPaint,
         );
         break;
       case EditorTool.figure:
-        _paintDashedRect(canvas, rect.normalize, tempPaint);
+        _paintDashedRect(canvas, rect.normalize, originalTempPaint);
         break;
       default:
         break;

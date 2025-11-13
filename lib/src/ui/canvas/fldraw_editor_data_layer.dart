@@ -419,6 +419,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
 
   void _handleDrawingToolPointerDown(PointerDownEvent event, Offset worldPos) {
     final tool = _toolBloc.state.activeTool;
+    final lineStyle = _toolBloc.state.lineStyle;
     _isDrawing = true;
     _drawingStart = _hoveredSnapPoint?.worldPosition ?? worldPos;
     _startSnapPoint = _hoveredSnapPoint;
@@ -438,12 +439,14 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
           start: _drawingStart,
           end: _drawingStart,
           points: _currentPencilPoints,
+          lineStyle: lineStyle,
         );
       } else {
         _tempDrawingObject = TempDrawingObject(
           tool: tool,
           start: _drawingStart,
           end: _drawingStart,
+          lineStyle: lineStyle,
         );
       }
     });
@@ -610,6 +613,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
             start: _tempDrawingObject!.start,
             end: endPos,
             points: _currentPencilPoints,
+            lineStyle: _tempDrawingObject!.lineStyle,
           );
         }
       });
@@ -648,6 +652,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
           end: finalPos,
           pathType: pathType,
           points: _tempDrawingObject!.points,
+          lineStyle: _tempDrawingObject!.lineStyle,
         );
       }
       setState(() {});
@@ -685,6 +690,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
     if (_tempDrawingObject == null) return;
 
     final tool = _tempDrawingObject!.tool;
+    final lineStyle = _tempDrawingObject!.lineStyle;
     DrawingObject? newObject;
     final id = const Uuid().v4();
 
@@ -712,10 +718,15 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
         pathType: _tempDrawingObject!.pathType,
         startAttachment: startAttachment,
         endAttachment: endAttachment,
+        lineStyle: lineStyle,
       );
     } else if (tool == EditorTool.pencil) {
       if (_currentPencilPoints.length > 1) {
-        newObject = PencilStrokeObject(id: id, points: _currentPencilPoints);
+        newObject = PencilStrokeObject(
+          id: id,
+          points: _currentPencilPoints,
+          lineStyle: lineStyle,
+        );
       }
     } else {
       final rect = Rect.fromPoints(
@@ -725,10 +736,14 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       if (rect.width > 2 || rect.height > 2) {
         switch (tool) {
           case EditorTool.circle:
-            newObject = CircleObject(id: id, rect: rect);
+            newObject = CircleObject(id: id, rect: rect, lineStyle: lineStyle);
             break;
           case EditorTool.square:
-            newObject = RectangleObject(id: id, rect: rect);
+            newObject = RectangleObject(
+              id: id,
+              rect: rect,
+              lineStyle: lineStyle,
+            );
             break;
           case EditorTool.arrowTopRight:
             newObject = ArrowObject(
@@ -736,6 +751,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
               start: _drawingStart,
               end: _tempDrawingObject!.end,
               pathType: _tempDrawingObject!.pathType,
+              lineStyle: lineStyle,
             );
             break;
           case EditorTool.line:
@@ -743,6 +759,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
               id: id,
               start: _drawingStart,
               end: _tempDrawingObject!.end,
+              lineStyle: lineStyle,
             );
             break;
           case EditorTool.figure:
@@ -1083,7 +1100,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
     final focusNode = FocusNode();
     OverlayEntry? overlayEntry;
 
-    void _submitAndClose() {
+    void submitAndClose() {
       if (!mounted) return;
       final newText = textEditingController.text;
 
@@ -1119,7 +1136,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
 
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {
-        _submitAndClose();
+        submitAndClose();
       }
     });
 
@@ -1176,7 +1193,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
                     contentPadding: EdgeInsets.zero,
                     isDense: true,
                   ),
-                  onSubmitted: (_) => _submitAndClose(),
+                  onSubmitted: (_) => submitAndClose(),
                 ),
               ),
             ),
