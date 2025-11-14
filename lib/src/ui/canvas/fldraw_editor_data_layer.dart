@@ -420,6 +420,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
   void _handleDrawingToolPointerDown(PointerDownEvent event, Offset worldPos) {
     final tool = _toolBloc.state.activeTool;
     final lineStyle = _toolBloc.state.lineStyle;
+    final fillStyle = _toolBloc.state.fillStyle;
     _isDrawing = true;
     _drawingStart = _hoveredSnapPoint?.worldPosition ?? worldPos;
     _startSnapPoint = _hoveredSnapPoint;
@@ -440,6 +441,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
           end: _drawingStart,
           points: _currentPencilPoints,
           lineStyle: lineStyle,
+          fillStyle: fillStyle,
         );
       } else {
         _tempDrawingObject = TempDrawingObject(
@@ -447,6 +449,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
           start: _drawingStart,
           end: _drawingStart,
           lineStyle: lineStyle,
+          fillStyle: fillStyle,
         );
       }
     });
@@ -653,6 +656,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
           pathType: pathType,
           points: _tempDrawingObject!.points,
           lineStyle: _tempDrawingObject!.lineStyle,
+          fillStyle: _tempDrawingObject!.fillStyle,
         );
       }
       setState(() {});
@@ -691,6 +695,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
 
     final tool = _tempDrawingObject!.tool;
     final lineStyle = _tempDrawingObject!.lineStyle;
+    final fillStyle = _tempDrawingObject!.fillStyle;
     DrawingObject? newObject;
     final id = const Uuid().v4();
 
@@ -736,13 +741,19 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       if (rect.width > 2 || rect.height > 2) {
         switch (tool) {
           case EditorTool.circle:
-            newObject = CircleObject(id: id, rect: rect, lineStyle: lineStyle);
+            newObject = CircleObject(
+              id: id,
+              rect: rect,
+              lineStyle: lineStyle,
+              fillStyle: fillStyle,
+            );
             break;
           case EditorTool.square:
             newObject = RectangleObject(
               id: id,
               rect: rect,
               lineStyle: lineStyle,
+              fillStyle: fillStyle,
             );
             break;
           case EditorTool.arrowTopRight:

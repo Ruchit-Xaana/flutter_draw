@@ -621,20 +621,34 @@ class FlDrawEditorRenderBox extends RenderBox
         }
         continue;
       } else if (obj is CircleObject) {
+        // Fill first (if any), then stroke
+        final Paint circleFillPaint = Paint()
+          ..color = obj.fillStyle.color.withValues(alpha: obj.fillStyle.opacity)
+          ..style = PaintingStyle.fill;
+        if (obj.fillStyle.opacity > 0) {
+          canvas.drawOval(obj.rect, circleFillPaint);
+        }
         final Paint circleObjectPaint = Paint()
           ..color = obj.lineStyle.color.withValues(alpha: obj.lineStyle.opacity)
           ..style = PaintingStyle.stroke
           ..strokeWidth = obj.lineStyle.width / zoom;
         canvas.drawOval(obj.rect, circleObjectPaint);
       } else if (obj is RectangleObject) {
+        // Fill first (if any), then stroke
+        final RRect rrect = RRect.fromRectAndRadius(
+          obj.rect,
+          const Radius.circular(4.0),
+        );
+        final Paint rectFillPaint = Paint()
+          ..color = obj.fillStyle.color.withValues(alpha: obj.fillStyle.opacity)
+          ..style = PaintingStyle.fill;
+        if (obj.fillStyle.opacity > 0) {
+          canvas.drawRRect(rrect, rectFillPaint);
+        }
         final Paint rectObjectPaint = Paint()
           ..color = obj.lineStyle.color.withValues(alpha: obj.lineStyle.opacity)
           ..style = PaintingStyle.stroke
           ..strokeWidth = obj.lineStyle.width / zoom;
-        final rrect = RRect.fromRectAndRadius(
-          obj.rect,
-          const Radius.circular(4.0),
-        );
         canvas.drawRRect(rrect, rectObjectPaint);
       } else if (obj is SvgObject) {
         canvas.save();
@@ -860,6 +874,7 @@ class FlDrawEditorRenderBox extends RenderBox
   void _paintTempDrawingObject(Canvas canvas) {
     if (tempDrawingObject == null) return;
     final lineStyle = tempDrawingObject!.lineStyle;
+    final fillStyle = tempDrawingObject!.fillStyle;
     final Paint originalTempPaint = Paint()
       ..color = Colors.grey.withOpacity(0.7)
       ..style = PaintingStyle.stroke
@@ -874,10 +889,26 @@ class FlDrawEditorRenderBox extends RenderBox
 
     switch (tempDrawingObject!.tool) {
       case EditorTool.circle:
+        if (fillStyle.opacity > 0) {
+          final fillPaint = Paint()
+            ..color = fillStyle.color.withValues(alpha: fillStyle.opacity)
+            ..style = PaintingStyle.fill;
+          canvas.drawOval(rect.normalize, fillPaint);
+        }
         canvas.drawOval(rect.normalize, tempPaint);
         break;
       case EditorTool.square:
-        canvas.drawRect(rect.normalize, tempPaint);
+        final rrect = RRect.fromRectAndRadius(
+          rect.normalize,
+          const Radius.circular(4.0),
+        );
+        if (fillStyle.opacity > 0) {
+          final fillPaint = Paint()
+            ..color = fillStyle.color.withValues(alpha: fillStyle.opacity)
+            ..style = PaintingStyle.fill;
+          canvas.drawRRect(rrect, fillPaint);
+        }
+        canvas.drawRRect(rrect, tempPaint);
         break;
       case EditorTool.arrowTopRight:
         if (tempDrawingObject!.pathType == LinkPathType.orthogonal) {

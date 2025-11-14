@@ -51,11 +51,13 @@ abstract class DrawingObject {
 class RectangleObject extends DrawingObject {
   Rect _rect;
   LineStyle lineStyle;
+  FillStyle fillStyle;
 
   RectangleObject({
     required super.id,
     required Rect rect,
     this.lineStyle = const LineStyle(),
+    this.fillStyle = const FillStyle(),
     super.isSelected,
   }) : _rect = rect;
 
@@ -71,6 +73,7 @@ class RectangleObject extends DrawingObject {
     'rect': _rect.toJson(),
     'isSelected': isSelected,
     'lineStyle': lineStyle.toJson(),
+    'fillStyle': fillStyle.toJson(),
   };
 
   factory RectangleObject.fromJson(Map<String, dynamic> json) {
@@ -81,16 +84,25 @@ class RectangleObject extends DrawingObject {
       lineStyle: json['lineStyle'] != null
           ? LineStyle.fromJson(json['lineStyle'])
           : const LineStyle(),
+      fillStyle: json['fillStyle'] != null
+          ? FillStyle.fromJson(json['fillStyle'])
+          : const FillStyle(),
     );
   }
 
   @override
-  DrawingObject copyWith({Rect? rect, bool? isSelected, LineStyle? lineStyle}) {
+  DrawingObject copyWith({
+    Rect? rect,
+    bool? isSelected,
+    LineStyle? lineStyle,
+    FillStyle? fillStyle,
+  }) {
     return RectangleObject(
       id: id,
       rect: rect ?? _rect,
       isSelected: isSelected ?? this.isSelected,
       lineStyle: lineStyle ?? this.lineStyle,
+      fillStyle: fillStyle ?? this.fillStyle,
     );
   }
 }
@@ -98,12 +110,14 @@ class RectangleObject extends DrawingObject {
 class CircleObject extends DrawingObject {
   Rect _rect;
   LineStyle lineStyle;
+  FillStyle fillStyle;
 
   CircleObject({
     required super.id,
     required Rect rect,
     super.isSelected,
     this.lineStyle = const LineStyle(),
+    this.fillStyle = const FillStyle(),
   }) : _rect = rect;
 
   @override
@@ -118,6 +132,7 @@ class CircleObject extends DrawingObject {
     'rect': _rect.toJson(),
     'isSelected': isSelected,
     'lineStyle': lineStyle.toJson(),
+    'fillStyle': fillStyle.toJson(),
   };
 
   factory CircleObject.fromJson(Map<String, dynamic> json) {
@@ -128,16 +143,25 @@ class CircleObject extends DrawingObject {
       lineStyle: json['lineStyle'] != null
           ? LineStyle.fromJson(json['lineStyle'])
           : const LineStyle(),
+      fillStyle: json['fillStyle'] != null
+          ? FillStyle.fromJson(json['fillStyle'])
+          : const FillStyle(),
     );
   }
 
   @override
-  DrawingObject copyWith({Rect? rect, bool? isSelected, LineStyle? lineStyle}) {
+  DrawingObject copyWith({
+    Rect? rect,
+    bool? isSelected,
+    LineStyle? lineStyle,
+    FillStyle? fillStyle,
+  }) {
     return CircleObject(
       id: id,
       rect: rect ?? _rect,
       isSelected: isSelected ?? this.isSelected,
       lineStyle: lineStyle ?? this.lineStyle,
+      fillStyle: fillStyle ?? this.fillStyle,
     );
   }
 }
@@ -636,6 +660,7 @@ class TempDrawingObject {
   final LinkPathType pathType;
   final List<PointVector> points;
   final LineStyle lineStyle;
+  final FillStyle fillStyle;
 
   TempDrawingObject({
     required this.tool,
@@ -644,6 +669,7 @@ class TempDrawingObject {
     this.points = const [],
     this.pathType = LinkPathType.straight,
     this.lineStyle = const LineStyle(),
+    this.fillStyle = const FillStyle(),
   });
 
   TempDrawingObject copyWith({
@@ -651,6 +677,7 @@ class TempDrawingObject {
     List<PointVector>? points,
     LinkPathType? pathType,
     LineStyle? lineStyle,
+    FillStyle? fillStyle,
   }) {
     return TempDrawingObject(
       tool: tool,
@@ -659,6 +686,7 @@ class TempDrawingObject {
       points: points ?? this.points,
       pathType: pathType ?? this.pathType,
       lineStyle: lineStyle ?? this.lineStyle,
+      fillStyle: fillStyle ?? this.fillStyle,
     );
   }
 }
@@ -736,4 +764,41 @@ class LineStyle {
 
   @override
   int get hashCode => color.hashCode ^ opacity.hashCode ^ width.hashCode;
+}
+
+class FillStyle {
+  final Color color;
+  final double opacity;
+
+  const FillStyle({
+    this.color = Colors.white,
+    this.opacity = 0.0, // transparent by default
+  });
+
+  FillStyle copyWith({Color? color, double? opacity}) {
+    return FillStyle(
+      color: color ?? this.color,
+      opacity: opacity ?? this.opacity,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'color': color.value, 'opacity': opacity};
+
+  factory FillStyle.fromJson(Map<String, dynamic> json) {
+    return FillStyle(
+      color: Color(json['color'] as int? ?? Colors.white.value),
+      opacity: (json['opacity'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FillStyle &&
+          runtimeType == other.runtimeType &&
+          color == other.color &&
+          opacity == other.opacity;
+
+  @override
+  int get hashCode => color.hashCode ^ opacity.hashCode;
 }

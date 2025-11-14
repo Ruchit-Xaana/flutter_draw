@@ -17,6 +17,7 @@ export 'package:fldraw/src/models/drawing_entities.dart'
         EditorTool,
         DrawingObject,
         LineStyle,
+        FillStyle,
         CircleObject,
         RectangleObject,
         ArrowObject,

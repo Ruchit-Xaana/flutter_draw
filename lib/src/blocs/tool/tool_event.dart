@@ -26,3 +26,13 @@ class LineStyleChanged extends ToolEvent {
   @override
   List<Object> get props => [lineStyle];
 }
+
+/// Event dispatched when fill style is changed in the toolbar.
+class FillStyleChanged extends ToolEvent {
+  final FillStyle fillStyle;
+
+  const FillStyleChanged(this.fillStyle);
+
+  @override
+  List<Object> get props => [fillStyle];
+}

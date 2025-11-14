@@ -9,13 +9,36 @@ class ToolBloc extends Bloc<ToolEvent, ToolState> {
   ToolBloc() : super(const ToolState()) {
     on<ToolSelected>(_onToolSelected);
     on<LineStyleChanged>(_onLineStyleChanged);
+    on<FillStyleChanged>(_onFillStyleChanged);
   }
 
   void _onToolSelected(ToolSelected event, Emitter<ToolState> emit) {
-    emit(ToolState(activeTool: event.tool, lineStyle: state.lineStyle));
+    emit(
+      ToolState(
+        activeTool: event.tool,
+        lineStyle: state.lineStyle,
+        fillStyle: state.fillStyle,
+      ),
+    );
   }
 
   void _onLineStyleChanged(LineStyleChanged event, Emitter<ToolState> emit) {
-    emit(ToolState(activeTool: state.activeTool, lineStyle: event.lineStyle));
+    emit(
+      ToolState(
+        activeTool: state.activeTool,
+        lineStyle: event.lineStyle,
+        fillStyle: state.fillStyle,
+      ),
+    );
+  }
+
+  void _onFillStyleChanged(FillStyleChanged event, Emitter<ToolState> emit) {
+    emit(
+      ToolState(
+        activeTool: state.activeTool,
+        lineStyle: state.lineStyle,
+        fillStyle: event.fillStyle,
+      ),
+    );
   }
 }

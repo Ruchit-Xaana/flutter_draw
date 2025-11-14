@@ -277,6 +277,10 @@ class FlToolbar extends StatelessWidget {
                   onLineStyleChanged: (lineStyle) {
                     toolBloc.add(LineStyleChanged(lineStyle));
                   },
+                  fillStyle: state.fillStyle,
+                  onFillStyleChanged: (fillStyle) {
+                    toolBloc.add(FillStyleChanged(fillStyle));
+                  },
                 );
               },
             ),
@@ -395,10 +399,14 @@ class FlToolbar extends StatelessWidget {
 class _LineStyleSelector extends StatelessWidget {
   final LineStyle lineStyle;
   final ValueChanged<LineStyle> onLineStyleChanged;
+  final FillStyle fillStyle;
+  final ValueChanged<FillStyle> onFillStyleChanged;
 
   const _LineStyleSelector({
     required this.lineStyle,
     required this.onLineStyleChanged,
+    required this.fillStyle,
+    required this.onFillStyleChanged,
   });
 
   void _showLineStylePopover(BuildContext context) {
@@ -410,6 +418,8 @@ class _LineStyleSelector extends StatelessWidget {
         return LineStyleEditor(
           initialStyle: lineStyle,
           onChanged: onLineStyleChanged,
+          initialFillStyle: fillStyle,
+          onFillChanged: onFillStyleChanged,
         );
       },
     );
