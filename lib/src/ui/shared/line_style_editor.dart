@@ -55,6 +55,21 @@ class _LineStyleEditorState extends State<LineStyleEditor> {
     _fillOpacity = widget.initialFillStyle.opacity;
   }
 
+  @override
+  void didUpdateWidget(LineStyleEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update state when widget properties change (e.g., selection changes)
+    if (oldWidget.initialStyle != widget.initialStyle) {
+      _selectedColor = widget.initialStyle.color;
+      _opacity = widget.initialStyle.opacity;
+      _width = widget.initialStyle.width;
+    }
+    if (oldWidget.initialFillStyle != widget.initialFillStyle) {
+      _fillColor = widget.initialFillStyle.color;
+      _fillOpacity = widget.initialFillStyle.opacity;
+    }
+  }
+
   void _emitChange() {
     widget.onChanged(
       LineStyle(color: _selectedColor, opacity: _opacity, width: _width),

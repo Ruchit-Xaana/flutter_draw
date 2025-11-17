@@ -131,6 +131,14 @@ SubmitButton -> Instructions
                 child: FlToolbar(svgs: svgs),
               ),
             ),
+            // Add the style side panel to the right
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16.0), // Add gap from left
+                child: SizedBox(width: 320, child: const StyleSidePanel()),
+              ),
+            ),
           ],
         ),
       ),
