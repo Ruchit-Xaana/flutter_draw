@@ -364,7 +364,9 @@ class FlDrawEditorRenderBox extends RenderBox
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0 / zoom;
 
-    for (final obj in drawingObjects.values) {
+    for (final id in canvasState.drawingObjectOrder) {
+      final obj = drawingObjects[id];
+      if (obj == null) continue;
       final isSelected = selectionState.selectedDrawingObjectIds.contains(
         obj.id,
       );

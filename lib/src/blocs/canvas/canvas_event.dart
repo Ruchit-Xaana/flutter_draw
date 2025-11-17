@@ -196,3 +196,32 @@ class SelectionPasted extends CanvasEvent {
   @override
   List<Object> get props => [pastePosition];
 }
+
+// --- Layering Events ---
+class BringDrawingObjectToFront extends CanvasEvent {
+  final String objectId;
+  const BringDrawingObjectToFront(this.objectId);
+  @override
+  List<Object> get props => [objectId];
+}
+
+class SendDrawingObjectToBack extends CanvasEvent {
+  final String objectId;
+  const SendDrawingObjectToBack(this.objectId);
+  @override
+  List<Object> get props => [objectId];
+}
+
+class MoveDrawingObjectUp extends CanvasEvent {
+  final String objectId;
+  const MoveDrawingObjectUp(this.objectId);
+  @override
+  List<Object> get props => [objectId];
+}
+
+class MoveDrawingObjectDown extends CanvasEvent {
+  final String objectId;
+  const MoveDrawingObjectDown(this.objectId);
+  @override
+  List<Object> get props => [objectId];
+}

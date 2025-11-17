@@ -40,43 +40,90 @@ class StyleSidePanel extends StatelessWidget {
 
     return SafeArea(
       child: SingleChildScrollView(
-        child: LineStyleEditor(
-          initialStyle: lineStyle,
-          onChanged: (newLineStyle) {
-            if (obj is RectangleObject) {
-              context.read<CanvasBloc>().add(
-                DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
-              );
-            } else if (obj is CircleObject) {
-              context.read<CanvasBloc>().add(
-                DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
-              );
-            } else if (obj is ArrowObject) {
-              context.read<CanvasBloc>().add(
-                DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
-              );
-            } else if (obj is LineObject) {
-              context.read<CanvasBloc>().add(
-                DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
-              );
-            } else if (obj is PencilStrokeObject) {
-              context.read<CanvasBloc>().add(
-                DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
-              );
-            }
-          },
-          initialFillStyle: fillStyle ?? const FillStyle(),
-          onFillChanged: (newFillStyle) {
-            if (obj is RectangleObject) {
-              context.read<CanvasBloc>().add(
-                DrawingObjectUpdated(obj.copyWith(fillStyle: newFillStyle)),
-              );
-            } else if (obj is CircleObject) {
-              context.read<CanvasBloc>().add(
-                DrawingObjectUpdated(obj.copyWith(fillStyle: newFillStyle)),
-              );
-            }
-          },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Layering controls
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton.ghost(
+                    icon: const Icon(Icons.vertical_align_top),
+                    onPressed: () {
+                      context.read<CanvasBloc>().add(
+                        BringDrawingObjectToFront(objectId),
+                      );
+                    },
+                  ),
+                  IconButton.ghost(
+                    icon: const Icon(Icons.vertical_align_bottom),
+                    onPressed: () {
+                      context.read<CanvasBloc>().add(
+                        SendDrawingObjectToBack(objectId),
+                      );
+                    },
+                  ),
+                  IconButton.ghost(
+                    icon: const Icon(Icons.arrow_upward),
+                    onPressed: () {
+                      context.read<CanvasBloc>().add(
+                        MoveDrawingObjectUp(objectId),
+                      );
+                    },
+                  ),
+                  IconButton.ghost(
+                    icon: const Icon(Icons.arrow_downward),
+                    onPressed: () {
+                      context.read<CanvasBloc>().add(
+                        MoveDrawingObjectDown(objectId),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // Style editor
+            LineStyleEditor(
+              initialStyle: lineStyle,
+              onChanged: (newLineStyle) {
+                if (obj is RectangleObject) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
+                  );
+                } else if (obj is CircleObject) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
+                  );
+                } else if (obj is ArrowObject) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
+                  );
+                } else if (obj is LineObject) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
+                  );
+                } else if (obj is PencilStrokeObject) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(lineStyle: newLineStyle)),
+                  );
+                }
+              },
+              initialFillStyle: fillStyle ?? const FillStyle(),
+              onFillChanged: (newFillStyle) {
+                if (obj is RectangleObject) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(fillStyle: newFillStyle)),
+                  );
+                } else if (obj is CircleObject) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(fillStyle: newFillStyle)),
+                  );
+                }
+              },
+            ),
+          ],
         ),
       ),
     );

@@ -5,6 +5,9 @@ typedef HistoryEntry = (CanvasState state, CanvasEvent event);
 class CanvasState extends Equatable {
   final Map<String, NodeInstance> nodes;
   final Map<String, DrawingObject> drawingObjects;
+
+  /// List of drawing object IDs in z-order (first is back, last is front)
+  final List<String> drawingObjectOrder;
   final Offset viewportOffset;
   final double viewportZoom;
 
@@ -15,6 +18,7 @@ class CanvasState extends Equatable {
   const CanvasState({
     this.nodes = const {},
     this.drawingObjects = const {},
+    this.drawingObjectOrder = const [],
     this.viewportOffset = Offset.zero,
     this.viewportZoom = 1.0,
     this.undoStack = const [],
@@ -25,6 +29,7 @@ class CanvasState extends Equatable {
   CanvasState.historic({
     required this.nodes,
     required this.drawingObjects,
+    required this.drawingObjectOrder,
     required this.viewportOffset,
     required this.viewportZoom,
   }) : undoStack = [],
@@ -33,6 +38,7 @@ class CanvasState extends Equatable {
   CanvasState copyWith({
     Map<String, NodeInstance>? nodes,
     Map<String, DrawingObject>? drawingObjects,
+    List<String>? drawingObjectOrder,
     Offset? viewportOffset,
     double? viewportZoom,
     List<HistoryEntry>? undoStack,
@@ -41,6 +47,7 @@ class CanvasState extends Equatable {
     return CanvasState(
       nodes: nodes ?? this.nodes,
       drawingObjects: drawingObjects ?? this.drawingObjects,
+      drawingObjectOrder: drawingObjectOrder ?? this.drawingObjectOrder,
       viewportOffset: viewportOffset ?? this.viewportOffset,
       viewportZoom: viewportZoom ?? this.viewportZoom,
       undoStack: undoStack ?? this.undoStack,
@@ -52,6 +59,7 @@ class CanvasState extends Equatable {
   List<Object> get props => [
     nodes,
     drawingObjects,
+    drawingObjectOrder,
     viewportOffset,
     viewportZoom,
     undoStack,

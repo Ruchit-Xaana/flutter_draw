@@ -33,6 +33,64 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     on<NewProjectCreated>(_onNewProjectCreated);
     on<SelectionCut>(_onSelectionCut);
     on<SelectionPasted>(_onSelectionPasted);
+    on<BringDrawingObjectToFront>(_onBringDrawingObjectToFront);
+    on<SendDrawingObjectToBack>(_onSendDrawingObjectToBack);
+    on<MoveDrawingObjectUp>(_onMoveDrawingObjectUp);
+    on<MoveDrawingObjectDown>(_onMoveDrawingObjectDown);
+  }
+
+  void _onBringDrawingObjectToFront(
+    BringDrawingObjectToFront event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    newOrder.remove(id);
+    newOrder.add(id);
+    emit(state.copyWith(drawingObjectOrder: newOrder));
+  }
+
+  void _onSendDrawingObjectToBack(
+    SendDrawingObjectToBack event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    newOrder.remove(id);
+    newOrder.insert(0, id);
+    emit(state.copyWith(drawingObjectOrder: newOrder));
+  }
+
+  void _onMoveDrawingObjectUp(
+    MoveDrawingObjectUp event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    final idx = newOrder.indexOf(id);
+    if (idx >= 0 && idx < newOrder.length - 1) {
+      newOrder.removeAt(idx);
+      newOrder.insert(idx + 1, id);
+      emit(state.copyWith(drawingObjectOrder: newOrder));
+    }
+  }
+
+  void _onMoveDrawingObjectDown(
+    MoveDrawingObjectDown event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    final idx = newOrder.indexOf(id);
+    if (idx > 0) {
+      newOrder.removeAt(idx);
+      newOrder.insert(idx - 1, id);
+      emit(state.copyWith(drawingObjectOrder: newOrder));
+    }
   }
 
   void _emitWithHistory(
@@ -44,6 +102,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
       final historicState = CanvasState.historic(
         nodes: state.nodes,
         drawingObjects: state.drawingObjects,
+        drawingObjectOrder: state.drawingObjectOrder,
         viewportOffset: state.viewportOffset,
         viewportZoom: state.viewportZoom,
       );
@@ -77,6 +136,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final historicState = CanvasState.historic(
       nodes: currentState.nodes,
       drawingObjects: currentState.drawingObjects,
+      drawingObjectOrder: currentState.drawingObjectOrder,
       viewportOffset: currentState.viewportOffset,
       viewportZoom: currentState.viewportZoom,
     );
@@ -113,7 +173,14 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
       state.drawingObjects,
     );
     newDrawingObjects[event.object.id] = event.object;
-    emit(state.copyWith(drawingObjects: newDrawingObjects));
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    newOrder.add(event.object.id); // Add to front (top)
+    emit(
+      state.copyWith(
+        drawingObjects: newDrawingObjects,
+        drawingObjectOrder: newOrder,
+      ),
+    );
   }
 
   void _onObjectsRemoved(ObjectsRemoved event, Emitter<CanvasState> emit) {
@@ -123,7 +190,15 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final newDrawingObjects = Map<String, DrawingObject>.from(
       state.drawingObjects,
     )..removeWhere((key, _) => event.drawingObjectIds.contains(key));
-    emit(state.copyWith(nodes: newNodes, drawingObjects: newDrawingObjects));
+    final newOrder = List<String>.from(state.drawingObjectOrder)
+      ..removeWhere((id) => event.drawingObjectIds.contains(id));
+    emit(
+      state.copyWith(
+        nodes: newNodes,
+        drawingObjects: newDrawingObjects,
+        drawingObjectOrder: newOrder,
+      ),
+    );
   }
 
   void _onObjectsResizeEnded(
@@ -255,6 +330,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final currentStateForRedo = CanvasState.historic(
       nodes: state.nodes,
       drawingObjects: state.drawingObjects,
+      drawingObjectOrder: state.drawingObjectOrder,
       viewportOffset: state.viewportOffset,
       viewportZoom: state.viewportZoom,
     );
@@ -276,6 +352,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final currentStateForUndo = CanvasState.historic(
       nodes: state.nodes,
       drawingObjects: state.drawingObjects,
+      drawingObjectOrder: state.drawingObjectOrder,
       viewportOffset: state.viewportOffset,
       viewportZoom: state.viewportZoom,
     );
