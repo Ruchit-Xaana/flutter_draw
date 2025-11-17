@@ -15,8 +15,9 @@ import 'custom_tab.dart';
 
 class FlToolbar extends StatelessWidget {
   final List<String> svgs;
+  final FlDrawController? controller;
 
-  const FlToolbar({super.key, required this.svgs});
+  const FlToolbar({super.key, required this.svgs, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +99,26 @@ class FlToolbar extends StatelessWidget {
                           bottom: -10,
                           right: -10,
                           child: Text('V', style: TextStyle(fontSize: 10)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                TabItem(
+                  child: Padding(
+                    padding: padding,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(
+                          Icons.open_with,
+                          size: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
+                        Positioned(
+                          bottom: -10,
+                          right: -10,
+                          child: Text('P', style: TextStyle(fontSize: 10)),
                         ),
                       ],
                     ),

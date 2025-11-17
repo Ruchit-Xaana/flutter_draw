@@ -9,6 +9,7 @@ import 'package:perfect_freehand/perfect_freehand.dart';
 
 enum EditorTool {
   arrow,
+  pan,
   square,
   circle,
   arrowTopRight,

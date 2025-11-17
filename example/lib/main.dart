@@ -128,7 +128,7 @@ SubmitButton -> Instructions
               alignment: Alignment.topCenter,
               child: Padding(
                 padding: const EdgeInsets.only(top: 32.0),
-                child: FlToolbar(svgs: svgs),
+                child: FlToolbar(svgs: svgs, controller: controller),
               ),
             ),
             // Add the style side panel to the right
