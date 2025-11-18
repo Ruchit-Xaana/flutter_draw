@@ -1,9 +1,10 @@
+import 'package:flutter/rendering.dart';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+import 'package:fldraw/src/constants.dart';
 import 'dart:async';
 
 import 'package:fldraw/fldraw.dart';
-import 'package:flutter/widgets.dart';
-
-import 'fldraw_controller_interface.dart';
 
 /// A controller to programmatically interact with the fldraw canvas.
 ///
@@ -305,6 +306,96 @@ class FlDrawController implements FlDrawControllerInterface {
   void saveProject(Function(Map<String, dynamic>) onSave) {
     _assertIsInitialized();
     _canvasBloc!.add(ProjectSaved(onSave: onSave));
+  }
+
+  /// Returns a PNG of the current canvas as bytes.
+  @override
+  Future<Uint8List> getCanvasPngBytes({
+    double? pixelRatio,
+    Color? backgroundColor,
+  }) async {
+    _assertIsInitialized();
+    final canvasState = _canvasBloc!.state;
+    final allRects = [...canvasState.drawingObjects.values.map((o) => o.rect)];
+    if (allRects.isEmpty) {
+      throw Exception('No objects to export.');
+    }
+    Rect bounds = allRects.reduce((a, b) => a.expandToInclude(b));
+    const double padding = 32.0;
+    bounds = bounds.inflate(padding);
+
+    // 2. Compute new zoom and offset to fit bounds
+    final context = kCanvasRepaintBoundaryKey.currentContext;
+    if (context == null) {
+      throw Exception('Canvas context not found.');
+    }
+    final boundary = context.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null) {
+      throw Exception('Render boundary not found.');
+    }
+    final size = boundary.size;
+    debugPrint('Canvas size: $size, Bounds to fit: $bounds');
+
+    // Calculate zoom to fit bounds in viewport
+    final scaleX = size.width / bounds.width;
+    final scaleY = size.height / bounds.height;
+
+    final fitZoom = scaleX < scaleY ? scaleX : scaleY;
+    final fitOffset =
+        -canvasState.viewportOffset +
+        Offset(
+          -bounds.left - (bounds.width / 2),
+          -bounds.top - (bounds.height / 2),
+        );
+
+    // 3. Temporarily clear selection and set viewport
+    _selectionBloc!.add(SelectionCleared());
+    if (scaleX < 1.0 || scaleY < 1.0) {
+      _canvasBloc!.add(CanvasZoomed(fitZoom));
+    }
+
+    _canvasBloc!.add(CanvasPanned(fitOffset));
+    await Future.delayed(const Duration(milliseconds: 50));
+    await Future.delayed(Duration.zero);
+
+    // 5. Capture image
+    final image = await boundary.toImage(pixelRatio: pixelRatio ?? 3.0);
+
+    // 6. Apply background color if specified
+    if (backgroundColor != null) {
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      final paint = Paint()..color = backgroundColor;
+
+      // Draw background
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        paint,
+      );
+
+      // Draw original image on top
+      canvas.drawImage(image, Offset.zero, Paint());
+
+      final picture = recorder.endRecording();
+      final finalImage = await picture.toImage(image.width, image.height);
+      final byteData = await finalImage.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+
+      if (byteData == null) {
+        throw Exception('Failed to encode image as PNG.');
+      }
+
+      return byteData.buffer.asUint8List();
+    }
+
+    // Original path without background
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) {
+      throw Exception('Failed to encode image as PNG.');
+    }
+
+    return byteData.buffer.asUint8List();
   }
 
   /// Disposes of the controller's resources.

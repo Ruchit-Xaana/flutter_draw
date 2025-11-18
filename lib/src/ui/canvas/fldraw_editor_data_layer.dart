@@ -1452,6 +1452,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
             return BlocBuilder<ToolBloc, ToolState>(
               builder: (context, toolState) {
                 final Widget canvasChild = RepaintBoundary(
+                  key: kCanvasRepaintBoundaryKey,
                   child: ShaderBuilder(
                     assetKey: widget.fragmentShader,
                     (context, gridShader, child) =>

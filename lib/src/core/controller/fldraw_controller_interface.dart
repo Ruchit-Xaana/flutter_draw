@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:fldraw/fldraw.dart';
 import 'package:flutter/widgets.dart';
@@ -75,6 +75,11 @@ abstract class FlDrawControllerInterface {
   void loadProject(Map<String, dynamic> data);
 
   void saveProject(Function(Map<String, dynamic>) onSave);
+
+  Future<Uint8List> getCanvasPngBytes({
+    double? pixelRatio,
+    Color? backgroundColor,
+  });
 
   // --- Lifecycle ---
 
