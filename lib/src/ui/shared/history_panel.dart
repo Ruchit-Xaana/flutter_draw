@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:fldraw/fldraw.dart';
+import 'package:fldraw/src/theme.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class HistoryPanel extends StatefulWidget {
   final FlDrawController controller;
+  final ThemeData? theme;
 
-  const HistoryPanel({super.key, required this.controller});
+  const HistoryPanel({super.key, required this.controller, this.theme});
 
   @override
   State<HistoryPanel> createState() => _HistoryPanelState();
@@ -45,7 +47,7 @@ class _HistoryPanelState extends State<HistoryPanel> {
     final reversedHistory = _undoHistory.reversed.toList();
 
     return Theme(
-      data: ThemeData(colorScheme: ColorSchemes.darkDefaultColor, radius: 0.7),
+      data: widget.theme ?? themeDark(context),
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),

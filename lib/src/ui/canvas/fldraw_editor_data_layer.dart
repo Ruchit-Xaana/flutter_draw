@@ -47,12 +47,14 @@ class FlDrawEditorDataLayer extends StatefulWidget {
   final FlNodeHeaderBuilder? headerBuilder;
   final FlNodeBuilder? nodeBuilder;
   final String fragmentShader;
+  final bool enableGrid;
 
   const FlDrawEditorDataLayer({
     super.key,
     this.headerBuilder,
     this.nodeBuilder,
     required this.fragmentShader,
+    required this.enableGrid,
   });
 
   @override
@@ -268,7 +270,9 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
         focalPointRelativeToCenter * (1 / newZoom - 1 / state.viewportZoom);
 
     final newOffset =
-        state.viewportOffset + (panDelta / state.viewportZoom) + zoomPanCorrection;
+        state.viewportOffset +
+        (panDelta / state.viewportZoom) +
+        zoomPanCorrection;
 
     _canvasBloc.add(CanvasTransformed(zoom: newZoom, offset: newOffset));
   }
@@ -316,7 +320,8 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
 
     final objectId = selection.selectedDrawingObjectIds.first;
     final object = _canvasBloc.state.drawingObjects[objectId];
-    if (object == null || !(object is RectangleObject || object is CircleObject)) {
+    if (object == null ||
+        !(object is RectangleObject || object is CircleObject)) {
       return false;
     }
 
@@ -325,10 +330,14 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
     final double spacing = 12.0 / zoom;
 
     final localPositions = {
-      QuickActionDirection.top: object.rect.topCenter - Offset(0, spacing + halfHandle),
-      QuickActionDirection.right: object.rect.centerRight + Offset(spacing + halfHandle, 0),
-      QuickActionDirection.bottom: object.rect.bottomCenter + Offset(0, spacing + halfHandle),
-      QuickActionDirection.left: object.rect.centerLeft - Offset(spacing + halfHandle, 0),
+      QuickActionDirection.top:
+          object.rect.topCenter - Offset(0, spacing + halfHandle),
+      QuickActionDirection.right:
+          object.rect.centerRight + Offset(spacing + halfHandle, 0),
+      QuickActionDirection.bottom:
+          object.rect.bottomCenter + Offset(0, spacing + halfHandle),
+      QuickActionDirection.left:
+          object.rect.centerLeft - Offset(spacing + halfHandle, 0),
     };
 
     for (var entry in localPositions.entries) {
@@ -422,7 +431,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       _totalDragDelta += event.delta.distance;
     } else if (_isAreaSelecting) {
       setState(
-            () => _selectionArea = Rect.fromPoints(_selectionStart, worldPos),
+        () => _selectionArea = Rect.fromPoints(_selectionStart, worldPos),
       );
     } else if (_isDrawing) {
       _handleObjectDrawing(worldPos, event.pressure);
@@ -480,8 +489,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       _isRotating = true;
       _rotationStartCenter = object.rect.center;
       _originalObjectAngle = object.angle;
-      _rotationStartAngle =
-          (worldPos - _rotationStartCenter).direction;
+      _rotationStartAngle = (worldPos - _rotationStartCenter).direction;
     });
   }
 
@@ -634,9 +642,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
               newEnd = Offset(end.dx, worldPos.dy);
             }
           }
-        }
-
-        else if (handle == Handle.midPoint) {
+        } else if (handle == Handle.midPoint) {
           final dx = end.dx - start.dx;
           final dy = end.dy - start.dy;
           if (dx.abs() > dy.abs()) {
@@ -650,8 +656,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
 
         final updatedObject = object.copyWith(start: newStart, end: newEnd);
         _canvasBloc.add(DrawingObjectUpdated(updatedObject));
-
-      }  else {
+      } else {
         if (handle == Handle.arrowStart) {
           final updatedObject = object.copyWith(start: worldPos);
           _canvasBloc.add(DrawingObjectUpdated(updatedObject));
@@ -688,20 +693,28 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       final Offset anchorWorld;
       switch (handle) {
         case Handle.topLeft:
-          anchorWorld = _originalResizeRect!.bottomRight
-              .rotate(_originalResizeRect!.center, object.angle);
+          anchorWorld = _originalResizeRect!.bottomRight.rotate(
+            _originalResizeRect!.center,
+            object.angle,
+          );
           break;
         case Handle.topRight:
-          anchorWorld = _originalResizeRect!.bottomLeft
-              .rotate(_originalResizeRect!.center, object.angle);
+          anchorWorld = _originalResizeRect!.bottomLeft.rotate(
+            _originalResizeRect!.center,
+            object.angle,
+          );
           break;
         case Handle.bottomRight:
-          anchorWorld = _originalResizeRect!.topLeft
-              .rotate(_originalResizeRect!.center, object.angle);
+          anchorWorld = _originalResizeRect!.topLeft.rotate(
+            _originalResizeRect!.center,
+            object.angle,
+          );
           break;
         case Handle.bottomLeft:
-          anchorWorld = _originalResizeRect!.topRight
-              .rotate(_originalResizeRect!.center, object.angle);
+          anchorWorld = _originalResizeRect!.topRight.rotate(
+            _originalResizeRect!.center,
+            object.angle,
+          );
           break;
         default:
           return;
@@ -718,12 +731,15 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
         final newAspectRatio =
             localDragVector.dx.abs() / localDragVector.dy.abs();
         if (newAspectRatio > aspectRatio) {
-          localDragVector = Offset(localDragVector.dx,
-              localDragVector.dx.abs() / aspectRatio * localDragVector.dy.sign);
+          localDragVector = Offset(
+            localDragVector.dx,
+            localDragVector.dx.abs() / aspectRatio * localDragVector.dy.sign,
+          );
         } else {
           localDragVector = Offset(
-              localDragVector.dy.abs() * aspectRatio * localDragVector.dx.sign,
-              localDragVector.dy);
+            localDragVector.dy.abs() * aspectRatio * localDragVector.dx.sign,
+            localDragVector.dy,
+          );
         }
         dragVector = localDragVector.rotate(Offset.zero, object.angle);
       }
@@ -973,39 +989,38 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
     var start = objectWithEndpoints.start as Offset;
     var end = objectWithEndpoints.end as Offset;
     final startAttachment =
-    objectWithEndpoints.startAttachment as ObjectAttachment?;
-    final endAttachment = objectWithEndpoints.endAttachment as ObjectAttachment?;
+        objectWithEndpoints.startAttachment as ObjectAttachment?;
+    final endAttachment =
+        objectWithEndpoints.endAttachment as ObjectAttachment?;
     final canvasState = _canvasBloc.state;
 
     if (startAttachment != null) {
       final targetNode = canvasState.nodes[startAttachment.objectId];
       final targetObject = canvasState.drawingObjects[startAttachment.objectId];
-      final Rect? targetRect =
-      targetNode != null ? getNodeBoundsInWorld(targetNode) : targetObject?.rect;
+      final Rect? targetRect = targetNode != null
+          ? getNodeBoundsInWorld(targetNode)
+          : targetObject?.rect;
 
       if (targetRect != null) {
         final relPos = startAttachment.relativePosition;
-        start = targetRect.topLeft +
-            Offset(
-              targetRect.width * relPos.dx,
-              targetRect.height * relPos.dy,
-            );
+        start =
+            targetRect.topLeft +
+            Offset(targetRect.width * relPos.dx, targetRect.height * relPos.dy);
       }
     }
 
     if (endAttachment != null) {
       final targetNode = canvasState.nodes[endAttachment.objectId];
       final targetObject = canvasState.drawingObjects[endAttachment.objectId];
-      final Rect? targetRect =
-      targetNode != null ? getNodeBoundsInWorld(targetNode) : targetObject?.rect;
+      final Rect? targetRect = targetNode != null
+          ? getNodeBoundsInWorld(targetNode)
+          : targetObject?.rect;
 
       if (targetRect != null) {
         final relPos = endAttachment.relativePosition;
-        end = targetRect.topLeft +
-            Offset(
-              targetRect.width * relPos.dx,
-              targetRect.height * relPos.dy,
-            );
+        end =
+            targetRect.topLeft +
+            Offset(targetRect.width * relPos.dx, targetRect.height * relPos.dy);
       }
     }
     return (start, end);
@@ -1164,14 +1179,20 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
             if (distance < handleHitAreaRadius) {
               if (_hoveredHandle.objectId != objectId ||
                   _hoveredHandle.handle != entry.key) {
-                setState(() =>
-                _hoveredHandle = (objectId: objectId, handle: entry.key));
+                setState(
+                  () =>
+                      _hoveredHandle = (objectId: objectId, handle: entry.key),
+                );
               }
             } else {
               if (_hoveredHandle.objectId != objectId ||
                   _hoveredHandle.handle != Handle.rotate) {
-                setState(() => _hoveredHandle =
-                (objectId: objectId, handle: Handle.rotate));
+                setState(
+                  () => _hoveredHandle = (
+                    objectId: objectId,
+                    handle: Handle.rotate,
+                  ),
+                );
               }
             }
             return;
@@ -1205,7 +1226,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
             if (_hoveredHandle.objectId != objectId ||
                 _hoveredHandle.handle != entry.key) {
               setState(
-                    () => _hoveredHandle = (objectId: objectId, handle: entry.key),
+                () => _hoveredHandle = (objectId: objectId, handle: entry.key),
               );
             }
             return;
@@ -1226,7 +1247,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
             if (_hoveredHandle.objectId != objectId ||
                 _hoveredHandle.handle != entry.key) {
               setState(
-                    () => _hoveredHandle = (objectId: objectId, handle: entry.key),
+                () => _hoveredHandle = (objectId: objectId, handle: entry.key),
               );
             }
             return;
@@ -1297,7 +1318,11 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       object = TextObject(
         id: const Uuid().v4(),
         rect: Rect.fromLTWH(
-            at!.dx, at.dy, initialSize.width + 4, initialSize.height + 4),
+          at!.dx,
+          at.dy,
+          initialSize.width + 4,
+          initialSize.height + 4,
+        ),
         text: initialText,
         style: initialStyle,
       );
@@ -1429,13 +1454,14 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
                 final Widget canvasChild = RepaintBoundary(
                   child: ShaderBuilder(
                     assetKey: widget.fragmentShader,
-                        (context, gridShader, child) =>
+                    (context, gridShader, child) =>
                         FlDrawEditorRenderObjectWidget(
                           key: kNodeEditorWidgetKey,
                           canvasState: canvasState,
                           selectionState: selectionState,
                           style: const FlDrawEditorStyle(),
                           gridShader: gridShader,
+                          enableGrid: widget.enableGrid,
                           tempDrawingObject: _tempDrawingObject,
                           selectionArea: _selectionArea,
                           headerBuilder: widget.headerBuilder,
@@ -1450,11 +1476,11 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
                     KeyAction(
                       LogicalKeyboardKey.delete,
                       "Remove selected items",
-                          () => _canvasBloc.add(
+                      () => _canvasBloc.add(
                         ObjectsRemoved(
                           nodeIds: selectionState.selectedNodeIds,
                           drawingObjectIds:
-                          selectionState.selectedDrawingObjectIds,
+                              selectionState.selectedDrawingObjectIds,
                         ),
                       ),
                     ),
@@ -1572,7 +1598,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
                     KeyAction(
                       LogicalKeyboardKey.keyF,
                       "Select Figure Tool",
-                          () =>
+                      () =>
                           _toolBloc.add(const ToolSelected(EditorTool.figure)),
                     ),
                   ],
@@ -1589,9 +1615,9 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
                     onExit: (event) {
                       if (_hoveredHandle.handle != Handle.none) {
                         setState(
-                              () => _hoveredHandle = (
-                          objectId: '',
-                          handle: Handle.none,
+                          () => _hoveredHandle = (
+                            objectId: '',
+                            handle: Handle.none,
                           ),
                         );
                       }
@@ -1609,7 +1635,6 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
                         onPointerSignal: _onPointerSignal,
                         child: canvasChild,
                       ),
-
                     ),
                   ),
                 );

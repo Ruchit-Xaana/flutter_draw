@@ -38,6 +38,7 @@ class FlDrawEditorRenderObjectWidget extends MultiChildRenderObjectWidget {
   final FragmentShader gridShader;
   final TempDrawingObject? tempDrawingObject;
   final Rect selectionArea;
+  final bool enableGrid;
   final FlNodeHeaderBuilder? headerBuilder;
   final FlNodeBuilder? nodeBuilder;
   final Offset? snapHandlePosition;
@@ -50,6 +51,7 @@ class FlDrawEditorRenderObjectWidget extends MultiChildRenderObjectWidget {
     required this.gridShader,
     this.tempDrawingObject,
     required this.selectionArea,
+    required this.enableGrid,
     this.headerBuilder,
     this.nodeBuilder,
     this.snapHandlePosition,
@@ -71,6 +73,7 @@ class FlDrawEditorRenderObjectWidget extends MultiChildRenderObjectWidget {
     return FlDrawEditorRenderBox(
       style: style,
       gridShader: gridShader,
+      enableGrid: enableGrid,
       canvasState: canvasState,
       selectionState: selectionState,
       selectionArea: selectionArea,
@@ -115,6 +118,7 @@ class FlDrawEditorRenderBox extends RenderBox
   FlDrawEditorRenderBox({
     required FlDrawEditorStyle style,
     required FragmentShader gridShader,
+    required bool enableGrid,
     required CanvasState canvasState,
     required SelectionState selectionState,
     required Rect selectionArea,
@@ -126,7 +130,9 @@ class FlDrawEditorRenderBox extends RenderBox
        _canvasState = canvasState,
        _selectionState = selectionState,
        _selectionArea = selectionArea {
-    _loadGridShader();
+    if (enableGrid) {
+      _loadGridShader();
+    }
     updateNodes(nodesData);
   }
 
@@ -380,46 +386,57 @@ class FlDrawEditorRenderBox extends RenderBox
 
         if (obj is FigureObject) {
           final paint = Paint()
-            ..color =
-            obj.isSelected ? Colors.blue : Colors.white.withOpacity(0.5)
+            ..color = obj.isSelected
+                ? Colors.blue
+                : Colors.white.withOpacity(0.5)
             ..style = PaintingStyle.stroke
             ..strokeWidth = obj.isSelected ? 2.0 / zoom : 1.5 / zoom;
           _paintDashedRect(canvas, obj.rect, paint);
           final textStyle = TextStyle(
-              color: paint.color,
-              fontSize: 14.0 / zoom,
-              fontWeight: FontWeight.bold);
+            color: paint.color,
+            fontSize: 14.0 / zoom,
+            fontWeight: FontWeight.bold,
+          );
           final textSpan = TextSpan(text: obj.label, style: textStyle);
-          final textPainter =
-          TextPainter(text: textSpan, textDirection: TextDirection.ltr)
-            ..layout();
+          final textPainter = TextPainter(
+            text: textSpan,
+            textDirection: TextDirection.ltr,
+          )..layout();
           textPainter.paint(
-              canvas, obj.rect.topLeft - Offset(0, textPainter.height));
+            canvas,
+            obj.rect.topLeft - Offset(0, textPainter.height),
+          );
         } else if (obj is TextObject) {
           if (!obj.isEditing) {
-            final textPainter = TextPainter(
-                text: TextSpan(text: obj.text, style: obj.style),
-                textDirection: TextDirection.ltr)
-              ..layout(
-                  maxWidth:
-                  obj.rect.width.isFinite ? obj.rect.width : double.infinity)
-              ..paint(canvas, obj.rect.topLeft);
+            final textPainter =
+                TextPainter(
+                    text: TextSpan(text: obj.text, style: obj.style),
+                    textDirection: TextDirection.ltr,
+                  )
+                  ..layout(
+                    maxWidth: obj.rect.width.isFinite
+                        ? obj.rect.width
+                        : double.infinity,
+                  )
+                  ..paint(canvas, obj.rect.topLeft);
           }
         } else if (obj is CircleObject) {
           canvas.drawOval(obj.rect, objectPaint);
         } else if (obj is RectangleObject) {
-          final rrect =
-          RRect.fromRectAndRadius(obj.rect, const Radius.circular(4.0));
+          final rrect = RRect.fromRectAndRadius(
+            obj.rect,
+            const Radius.circular(4.0),
+          );
           canvas.drawRRect(rrect, objectPaint);
         } else if (obj is SvgObject) {
           canvas.save();
           canvas.translate(obj.rect.left, obj.rect.top);
           final Size svgSize = obj.pictureInfo.size;
-          final double scaleX = obj.rect.width /
-              (svgSize.width.isFinite && svgSize.width > 0
-                  ? svgSize.width
-                  : 1);
-          final double scaleY = obj.rect.height /
+          final double scaleX =
+              obj.rect.width /
+              (svgSize.width.isFinite && svgSize.width > 0 ? svgSize.width : 1);
+          final double scaleY =
+              obj.rect.height /
               (svgSize.height.isFinite && svgSize.height > 0
                   ? svgSize.height
                   : 1);
@@ -439,14 +456,15 @@ class FlDrawEditorRenderBox extends RenderBox
             selectionRect.topLeft,
             selectionRect.topRight,
             selectionRect.bottomRight,
-            selectionRect.bottomLeft
+            selectionRect.bottomLeft,
           ];
           for (final corner in corners) {
             canvas.drawCircle(corner, handleHitAreaRadius, handleHitAreaPaint);
             canvas.drawCircle(corner, visibleHandleRadius, handlePaint);
           }
 
-          if (selectionState.selectedDrawingObjectIds.length == 1 && (obj is RectangleObject || obj is CircleObject)) {
+          if (selectionState.selectedDrawingObjectIds.length == 1 &&
+              (obj is RectangleObject || obj is CircleObject)) {
             _paintQuickActionArrows(canvas, obj.rect);
           }
         }
@@ -456,8 +474,8 @@ class FlDrawEditorRenderBox extends RenderBox
       }
 
       if (obj is PencilStrokeObject) {
-        final paint =
-        Paint()..color = obj.isSelected ? Colors.blue : Colors.white;
+        final paint = Paint()
+          ..color = obj.isSelected ? Colors.blue : Colors.white;
         _paintPencilStroke(canvas, obj, paint);
 
         if (obj.isSelected) {
@@ -491,14 +509,15 @@ class FlDrawEditorRenderBox extends RenderBox
         if (startAttachment != null) {
           final targetNode = canvasState.nodes[startAttachment.objectId];
           final targetObject =
-          canvasState.drawingObjects[startAttachment.objectId];
+              canvasState.drawingObjects[startAttachment.objectId];
           final Rect? targetRect = targetNode != null
               ? getNodeBoundsInWorld(targetNode)
               : targetObject?.rect;
 
           if (targetRect != null) {
             final relPos = startAttachment.relativePosition;
-            start = targetRect.topLeft +
+            start =
+                targetRect.topLeft +
                 Offset(
                   targetRect.width * relPos.dx,
                   targetRect.height * relPos.dy,
@@ -511,14 +530,15 @@ class FlDrawEditorRenderBox extends RenderBox
         if (endAttachment != null) {
           final targetNode = canvasState.nodes[endAttachment.objectId];
           final targetObject =
-          canvasState.drawingObjects[endAttachment.objectId];
+              canvasState.drawingObjects[endAttachment.objectId];
           final Rect? targetRect = targetNode != null
               ? getNodeBoundsInWorld(targetNode)
               : targetObject?.rect;
 
           if (targetRect != null) {
             final relPos = endAttachment.relativePosition;
-            end = targetRect.topLeft +
+            end =
+                targetRect.topLeft +
                 Offset(
                   targetRect.width * relPos.dx,
                   targetRect.height * relPos.dy,
@@ -592,14 +612,15 @@ class FlDrawEditorRenderBox extends RenderBox
         if (startAttachment != null) {
           final targetNode = canvasState.nodes[startAttachment.objectId];
           final targetObject =
-          canvasState.drawingObjects[startAttachment.objectId];
+              canvasState.drawingObjects[startAttachment.objectId];
           final Rect? targetRect = targetNode != null
               ? getNodeBoundsInWorld(targetNode)
               : targetObject?.rect;
 
           if (targetRect != null) {
             final relPos = startAttachment.relativePosition;
-            start = targetRect.topLeft +
+            start =
+                targetRect.topLeft +
                 Offset(
                   targetRect.width * relPos.dx,
                   targetRect.height * relPos.dy,
@@ -612,14 +633,15 @@ class FlDrawEditorRenderBox extends RenderBox
         if (endAttachment != null) {
           final targetNode = canvasState.nodes[endAttachment.objectId];
           final targetObject =
-          canvasState.drawingObjects[endAttachment.objectId];
+              canvasState.drawingObjects[endAttachment.objectId];
           final Rect? targetRect = targetNode != null
               ? getNodeBoundsInWorld(targetNode)
               : targetObject?.rect;
 
           if (targetRect != null) {
             final relPos = endAttachment.relativePosition;
-            end = targetRect.topLeft +
+            end =
+                targetRect.topLeft +
                 Offset(
                   targetRect.width * relPos.dx,
                   targetRect.height * relPos.dy,
@@ -679,8 +701,11 @@ class FlDrawEditorRenderBox extends RenderBox
 
     for (var entry in positions.entries) {
       final center = entry.value;
-      final handleRect =
-      Rect.fromCenter(center: center, width: handleSize, height: handleSize);
+      final handleRect = Rect.fromCenter(
+        center: center,
+        width: handleSize,
+        height: handleSize,
+      );
       canvas.drawOval(handleRect, handlePaint);
 
       final Path arrowPath = Path();

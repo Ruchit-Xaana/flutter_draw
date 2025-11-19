@@ -85,7 +85,6 @@ start -> outputPhase
 
       final projectData = jsonDecode(jsonString);
       controller.loadProject(projectData);
-
     } on FormatException catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -99,20 +98,17 @@ start -> outputPhase
       backgroundColor: Colors.black,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 20),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight: 250,
-                      maxWidth: 250,
-                    ),
-                    child: HistoryPanel(controller: controller),
-                  ),
-                ),
-              ],
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 250, maxWidth: 250),
+              child: HistoryPanel(controller: controller),
             ),
+          ),
+        ],
+      ),
       body: FlDraw(
         controller: controller,
         onControllerCreated: (controller) {
@@ -141,7 +137,7 @@ start -> outputPhase
         },
         child: Stack(
           children: [
-            FlDrawCanvas(),
+            FlDrawCanvas(enableGrid: false),
             Align(
               alignment: Alignment.topCenter,
               child: Padding(
