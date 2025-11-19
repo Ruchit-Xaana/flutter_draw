@@ -292,13 +292,13 @@ class FlDrawControllerImpl implements FlDrawController {
       throw Exception('Render boundary not found.');
     }
     final size = boundary.size;
-    debugPrint('Canvas size: $size, Bounds to fit: $bounds');
 
     // Calculate zoom to fit bounds in viewport
     final scaleX = size.width / bounds.width;
     final scaleY = size.height / bounds.height;
 
     final fitZoom = scaleX < scaleY ? scaleX : scaleY;
+    final effectiveZoom = fitZoom < 1.0 ? fitZoom : 1.0;
     final fitOffset =
         -canvasState.viewportOffset +
         Offset(
@@ -308,47 +308,58 @@ class FlDrawControllerImpl implements FlDrawController {
 
     // 3. Temporarily clear selection and set viewport
     _selectionBloc!.add(SelectionCleared());
-    if (scaleX < 1.0 || scaleY < 1.0) {
-      _canvasBloc!.add(CanvasZoomed(fitZoom));
-    }
+
+    _canvasBloc!.add(CanvasZoomed(effectiveZoom));
 
     _canvasBloc!.add(CanvasPanned(fitOffset));
     await Future.delayed(const Duration(milliseconds: 50));
     await Future.delayed(Duration.zero);
 
     // 5. Capture image
-    final image = await boundary.toImage(pixelRatio: pixelRatio ?? 3.0);
+    final actualPixelRatio = pixelRatio ?? 3.0;
+    final image = await boundary.toImage(pixelRatio: actualPixelRatio);
 
-    // 6. Apply background color if specified
+    // 6. Calculate the crop region (center of the canvas where our bounds are)
+    final targetWidth = (bounds.width * effectiveZoom * actualPixelRatio)
+        .round();
+    final targetHeight = (bounds.height * effectiveZoom * actualPixelRatio)
+        .round();
+
+    final cropX = ((image.width - targetWidth) / 2).round();
+    final cropY = ((image.height - targetHeight) / 2).round();
+
+    // 7. Crop and optionally add background
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    // Draw background if specified
     if (backgroundColor != null) {
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
       final paint = Paint()..color = backgroundColor;
-
-      // Draw background
       canvas.drawRect(
-        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(0, 0, targetWidth.toDouble(), targetHeight.toDouble()),
         paint,
       );
-
-      // Draw original image on top
-      canvas.drawImage(image, Offset.zero, Paint());
-
-      final picture = recorder.endRecording();
-      final finalImage = await picture.toImage(image.width, image.height);
-      final byteData = await finalImage.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-
-      if (byteData == null) {
-        throw Exception('Failed to encode image as PNG.');
-      }
-
-      return byteData.buffer.asUint8List();
     }
 
-    // Original path without background
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    // Draw the cropped portion of the original image
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(
+        cropX.toDouble(),
+        cropY.toDouble(),
+        targetWidth.toDouble(),
+        targetHeight.toDouble(),
+      ),
+      Rect.fromLTWH(0, 0, targetWidth.toDouble(), targetHeight.toDouble()),
+      Paint(),
+    );
+
+    final picture = recorder.endRecording();
+    final finalImage = await picture.toImage(targetWidth, targetHeight);
+    final byteData = await finalImage.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
+
     if (byteData == null) {
       throw Exception('Failed to encode image as PNG.');
     }

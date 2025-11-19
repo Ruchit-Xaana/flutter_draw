@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:html' as html; // For web download
 
 import 'package:example/gen/assets.gen.dart';
 import 'package:fldraw/fldraw.dart';
@@ -71,6 +73,42 @@ SubmitButton -> Instructions
     }
   }
 
+  Future<void> downloadImage() async {
+    if (controller == null) return;
+
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Generating image...')));
+
+      // Get the image bytes
+      final Uint8List imageBytes = await controller!.getCanvasPngBytes(
+        pixelRatio: 3.0,
+        backgroundColor: Colors.black,
+      );
+
+      // Create blob and download (web)
+      final blob = html.Blob([imageBytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute(
+          'download',
+          'canvas_${DateTime.now().millisecondsSinceEpoch}.png',
+        )
+        ..click();
+      html.Url.revokeObjectUrl(url);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image downloaded successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error downloading image: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,8 +173,41 @@ SubmitButton -> Instructions
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.only(left: 16.0), // Add gap from left
+                padding: const EdgeInsets.only(left: 16.0),
                 child: SizedBox(width: 320, child: const StyleSidePanel()),
+              ),
+            ),
+            // Download button
+            Positioned(
+              top: 32,
+              right: 32,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Download button
+                  FloatingActionButton(
+                    heroTag: 'download',
+                    onPressed: downloadImage,
+                    tooltip: 'Download Image',
+                    child: const Icon(Icons.download),
+                  ),
+                  const SizedBox(height: 12),
+                  // Zoom In button
+                  FloatingActionButton(
+                    heroTag: 'zoomIn',
+                    onPressed: () => controller?.zoomIn(),
+                    tooltip: 'Zoom In',
+                    child: const Icon(Icons.zoom_in),
+                  ),
+                  const SizedBox(height: 12),
+                  // Zoom Out button
+                  FloatingActionButton(
+                    heroTag: 'zoomOut',
+                    onPressed: () => controller?.zoomOut(),
+                    tooltip: 'Zoom Out',
+                    child: const Icon(Icons.zoom_out),
+                  ),
+                ],
               ),
             ),
           ],
