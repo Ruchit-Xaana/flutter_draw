@@ -396,7 +396,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     Emitter<CanvasState> emit,
   ) {
     emit(const CanvasState());
-    showNodeEditorSnackbar('New project created.', SnackbarType.success);
+    //showNodeEditorSnackbar('New project created.', SnackbarType.success);
   }
 
   void _onProjectSaved(ProjectSaved event, Emitter<CanvasState> emit) {
@@ -411,7 +411,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
           .toList(),
     };
     event.onSave(jsonData);
-    showNodeEditorSnackbar('Project saved.', SnackbarType.success);
+    //showNodeEditorSnackbar('Project saved.', SnackbarType.success);
   }
 
   void _onProjectLoaded(ProjectLoaded event, Emitter<CanvasState> emit) {

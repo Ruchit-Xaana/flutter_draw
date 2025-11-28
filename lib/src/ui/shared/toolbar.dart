@@ -109,6 +109,26 @@ class FlToolbar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
+                        Icon(
+                          Icons.open_with,
+                          size: 16,
+                          color: context.theme.colorScheme.foreground,
+                        ),
+                        Positioned(
+                          bottom: -10,
+                          right: -10,
+                          child: Text('P', style: TextStyle(fontSize: 10)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                TabItem(
+                  child: Padding(
+                    padding: padding,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
                         Assets.icons.square.svg(
                           width: 16,
                           color: context.theme.colorScheme.foreground,

@@ -1,5 +1,6 @@
 import 'dart:convert';
-
+import 'dart:typed_data';
+import 'dart:html' as html; // For web download
 import 'package:example/gen/assets.gen.dart';
 import 'package:fldraw/fldraw.dart';
 import 'package:flutter/material.dart';
@@ -41,54 +42,37 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
-  void loadFromText() {
-    final fldrawCode = """
-   // Vertical workflow with grouped steps
-
-start [shape: node, heading: "Start", text: "Begin the process"]
-
-// Group for input & validation phase
-inputPhase [label: "Input Phase"] {
-  collect [shape: rect, text: "Collect User Info"]
-  validate [shape: node, heading: "Validate", text: "Check Input Data"]
-}
-
-// Group for processing phase
-processPhase [label: "Processing Phase"] {
-  transform [shape: rect, text: "Transform Data"]
-  compute [shape: node, heading: "Compute", text: "Perform Calculations"]
-  cache [shape: rect, text: "Cache Results"]
-}
-
-// Group for output & cleanup
-outputPhase [label: "Output Phase", figure: true] {
-  save [shape: circle, text: "Save to Database"]
-  notify [shape: node, heading: "Notify", text: "Send Confirmation"]
-  cleanup [shape: rect, text: "Clean Temp Files"]
-}
-
-end [shape: node, heading: "End", text: "Workflow Complete"]
-
-// --- Relationships ---
-start -> inputPhase
-inputPhase -> processPhase
-processPhase -> outputPhase
-outputPhase -> end
-
-start -> outputPhase
-  """;
-
+  Future<void> downloadImage() async {
     try {
-      final parser = FlDrawParser();
-
-      final jsonString = parser.parse(fldrawCode);
-
-      final projectData = jsonDecode(jsonString);
-      controller.loadProject(projectData);
-    } on FormatException catch (e) {
+      // Show loading indicator
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Syntax Error: ${e.message}')));
+      ).showSnackBar(const SnackBar(content: Text('Generating image...')));
+
+      // Get the image bytes
+      final Uint8List imageBytes = await controller!.getCanvasPngBytes(
+        pixelRatio: 3.0,
+        backgroundColor: Colors.black,
+      );
+
+      // Create blob and download (web)
+      final blob = html.Blob([imageBytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute(
+          'download',
+          'canvas_${DateTime.now().millisecondsSinceEpoch}.png',
+        )
+        ..click();
+      html.Url.revokeObjectUrl(url);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Image downloaded successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error downloading image: $e')));
     }
   }
 
@@ -111,9 +95,6 @@ start -> outputPhase
       ),
       body: FlDraw(
         controller: controller,
-        onControllerCreated: (controller) {
-          loadFromText();
-        },
         onCanvasStateChanged: (state) {
           print("====== CANVAS ======");
           print(state.drawingObjects);
@@ -149,8 +130,41 @@ start -> outputPhase
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.only(left: 16.0), // Add gap from left
+                padding: const EdgeInsets.only(left: 16.0),
                 child: SizedBox(width: 320, child: const StyleSidePanel()),
+              ),
+            ),
+            // Download button
+            Positioned(
+              top: 32,
+              right: 32,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Download button
+                  FloatingActionButton(
+                    heroTag: 'download',
+                    onPressed: downloadImage,
+                    tooltip: 'Download Image',
+                    child: const Icon(Icons.download),
+                  ),
+                  const SizedBox(height: 12),
+                  // Zoom In button
+                  FloatingActionButton(
+                    heroTag: 'zoomIn',
+                    onPressed: () => controller.zoomIn(),
+                    tooltip: 'Zoom In',
+                    child: const Icon(Icons.zoom_in),
+                  ),
+                  const SizedBox(height: 12),
+                  // Zoom Out button
+                  FloatingActionButton(
+                    heroTag: 'zoomOut',
+                    onPressed: () => controller.zoomOut(),
+                    tooltip: 'Zoom Out',
+                    child: const Icon(Icons.zoom_out),
+                  ),
+                ],
               ),
             ),
           ],

@@ -382,7 +382,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
 
     final tool = _toolBloc.state.activeTool;
 
-    if (event.buttons == kMiddleMouseButton) {
+    if (event.buttons == kMiddleMouseButton || tool == EditorTool.pan) {
       _onPanStart();
       return;
     }
@@ -1695,7 +1695,9 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
           return SystemMouseCursors.basic;
       }
     }
-    if (_isPanning) return SystemMouseCursors.move;
+    if (currentTool == EditorTool.pan) {
+      return _isPanning ? SystemMouseCursors.grabbing : SystemMouseCursors.grab;
+    }
 
     switch (currentTool) {
       case EditorTool.arrow:
