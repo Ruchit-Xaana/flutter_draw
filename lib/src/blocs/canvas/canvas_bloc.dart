@@ -39,9 +39,70 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
         SelectionCut e => _onSelectionCut(e, emit),
         SelectionPasted e => _onSelectionPasted(e, emit),
         SelectionCopied e => _onSelectionCopied(e, emit),
-        ObjectDuplicatedWithConnection e => _onObjectDuplicatedWithConnection(e, emit),
+        ObjectDuplicatedWithConnection e => _onObjectDuplicatedWithConnection(
+          e,
+          emit,
+        ),
+        BringDrawingObjectToFront e => _onBringDrawingObjectToFront(e, emit),
+        SendDrawingObjectToBack e => _onSendDrawingObjectToBack(e, emit),
+        MoveDrawingObjectUp e => _onMoveDrawingObjectUp(e, emit),
+        MoveDrawingObjectDown e => _onMoveDrawingObjectDown(e, emit),
       });
     });
+  }
+
+  void _onBringDrawingObjectToFront(
+    BringDrawingObjectToFront event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    newOrder.remove(id);
+    newOrder.add(id);
+    emit(state.copyWith(drawingObjectOrder: newOrder));
+  }
+
+  void _onSendDrawingObjectToBack(
+    SendDrawingObjectToBack event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    newOrder.remove(id);
+    newOrder.insert(0, id);
+    emit(state.copyWith(drawingObjectOrder: newOrder));
+  }
+
+  void _onMoveDrawingObjectUp(
+    MoveDrawingObjectUp event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    final idx = newOrder.indexOf(id);
+    if (idx >= 0 && idx < newOrder.length - 1) {
+      newOrder.removeAt(idx);
+      newOrder.insert(idx + 1, id);
+      emit(state.copyWith(drawingObjectOrder: newOrder));
+    }
+  }
+
+  void _onMoveDrawingObjectDown(
+    MoveDrawingObjectDown event,
+    Emitter<CanvasState> emit,
+  ) {
+    _pushToUndoStack(event, emit, state);
+    final id = event.objectId;
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    final idx = newOrder.indexOf(id);
+    if (idx > 0) {
+      newOrder.removeAt(idx);
+      newOrder.insert(idx - 1, id);
+      emit(state.copyWith(drawingObjectOrder: newOrder));
+    }
   }
 
   void _emitWithHistory(
@@ -53,6 +114,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
       final historicState = CanvasState.historic(
         nodes: state.nodes,
         drawingObjects: state.drawingObjects,
+        drawingObjectOrder: state.drawingObjectOrder,
         viewportOffset: state.viewportOffset,
         viewportZoom: state.viewportZoom,
       );
@@ -86,6 +148,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final historicState = CanvasState.historic(
       nodes: currentState.nodes,
       drawingObjects: currentState.drawingObjects,
+      drawingObjectOrder: state.drawingObjectOrder,
       viewportOffset: currentState.viewportOffset,
       viewportZoom: currentState.viewportZoom,
     );
@@ -98,11 +161,13 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     emit(state.copyWith(undoStack: newUndoStack, redoStack: []));
   }
 
-  void _onCanvasTransformed(CanvasTransformed event, Emitter<CanvasState> emit) {
-    emit(state.copyWith(
-      viewportZoom: event.zoom,
-      viewportOffset: event.offset,
-    ));
+  void _onCanvasTransformed(
+    CanvasTransformed event,
+    Emitter<CanvasState> emit,
+  ) {
+    emit(
+      state.copyWith(viewportZoom: event.zoom, viewportOffset: event.offset),
+    );
   }
 
   void _onCanvasPanned(CanvasPanned event, Emitter<CanvasState> emit) {
@@ -129,7 +194,14 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
       state.drawingObjects,
     );
     newDrawingObjects[event.object.id] = event.object;
-    emit(state.copyWith(drawingObjects: newDrawingObjects));
+    final newOrder = List<String>.from(state.drawingObjectOrder);
+    newOrder.add(event.object.id); // Add to front (top)
+    emit(
+      state.copyWith(
+        drawingObjects: newDrawingObjects,
+        drawingObjectOrder: newOrder,
+      ),
+    );
   }
 
   void _onObjectsRemoved(ObjectsRemoved event, Emitter<CanvasState> emit) {
@@ -139,7 +211,15 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final newDrawingObjects = Map<String, DrawingObject>.from(
       state.drawingObjects,
     )..removeWhere((key, _) => event.drawingObjectIds.contains(key));
-    emit(state.copyWith(nodes: newNodes, drawingObjects: newDrawingObjects));
+    final newOrder = List<String>.from(state.drawingObjectOrder)
+      ..removeWhere((id) => event.drawingObjectIds.contains(id));
+    emit(
+      state.copyWith(
+        nodes: newNodes,
+        drawingObjects: newDrawingObjects,
+        drawingObjectOrder: newOrder,
+      ),
+    );
   }
 
   void _onObjectsResizeEnded(
@@ -151,12 +231,11 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
   }
 
   void _onObjectsRotationEnded(
-      ObjectsRotationEnded event,
-      Emitter<CanvasState> emit,
-      ) {
+    ObjectsRotationEnded event,
+    Emitter<CanvasState> emit,
+  ) {
     _pushToUndoStack(event, emit, state);
   }
-
 
   void _onDrawingObjectUpdated(
     DrawingObjectUpdated event,
@@ -279,6 +358,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final currentStateForRedo = CanvasState.historic(
       nodes: state.nodes,
       drawingObjects: state.drawingObjects,
+      drawingObjectOrder: state.drawingObjectOrder,
       viewportOffset: state.viewportOffset,
       viewportZoom: state.viewportZoom,
     );
@@ -300,6 +380,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
     final currentStateForUndo = CanvasState.historic(
       nodes: state.nodes,
       drawingObjects: state.drawingObjects,
+      drawingObjectOrder: state.drawingObjectOrder,
       viewportOffset: state.viewportOffset,
       viewportZoom: state.viewportZoom,
     );
@@ -415,7 +496,9 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
   void _onSelectionCopied(SelectionCopied e, Emitter<CanvasState> emit) {}
 
   void _onObjectDuplicatedWithConnection(
-      ObjectDuplicatedWithConnection event, Emitter<CanvasState> emit) {
+    ObjectDuplicatedWithConnection event,
+    Emitter<CanvasState> emit,
+  ) {
     _pushToUndoStack(event, emit, state);
 
     final sourceObject = state.drawingObjects[event.sourceObjectId];
@@ -433,24 +516,50 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
 
     switch (event.direction) {
       case QuickActionDirection.top:
-        newRectTopLeft = sourceRect.topLeft - Offset(0, sourceRect.height + spacing);
-        startAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(0.5, 0.0));
-        endAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(0.5, 1.0));
+        newRectTopLeft =
+            sourceRect.topLeft - Offset(0, sourceRect.height + spacing);
+        startAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(0.5, 0.0),
+        );
+        endAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(0.5, 1.0),
+        );
         break;
       case QuickActionDirection.right:
         newRectTopLeft = sourceRect.topRight + const Offset(spacing, 0);
-        startAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(1.0, 0.5));
-        endAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(0.0, 0.5));
+        startAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(1.0, 0.5),
+        );
+        endAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(0.0, 0.5),
+        );
         break;
       case QuickActionDirection.bottom:
         newRectTopLeft = sourceRect.bottomLeft + Offset(0, spacing);
-        startAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(0.5, 1.0));
-        endAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(0.5, 0.0));
+        startAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(0.5, 1.0),
+        );
+        endAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(0.5, 0.0),
+        );
         break;
       case QuickActionDirection.left:
-        newRectTopLeft = sourceRect.topLeft - Offset(sourceRect.width + spacing, 0);
-        startAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(0.0, 0.5));
-        endAttachment = const ObjectAttachment(objectId: '', relativePosition: Offset(1.0, 0.5));
+        newRectTopLeft =
+            sourceRect.topLeft - Offset(sourceRect.width + spacing, 0);
+        startAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(0.0, 0.5),
+        );
+        endAttachment = const ObjectAttachment(
+          objectId: '',
+          relativePosition: Offset(1.0, 0.5),
+        );
         break;
     }
 
@@ -474,9 +583,10 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
       endAttachment: endAttachment.copyWith(objectId: newShape.id),
     );
 
-    final newDrawingObjects = Map<String, DrawingObject>.from(state.drawingObjects)
-      ..[newShape.id] = newShape
-      ..[newArrow.id] = newArrow;
+    final newDrawingObjects =
+        Map<String, DrawingObject>.from(state.drawingObjects)
+          ..[newShape.id] = newShape
+          ..[newArrow.id] = newArrow;
 
     emit(state.copyWith(drawingObjects: newDrawingObjects));
   }

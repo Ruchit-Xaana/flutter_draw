@@ -1,3 +1,4 @@
+import 'package:fldraw/src/core/controller/fldraw_controller_interface.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';

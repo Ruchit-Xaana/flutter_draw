@@ -2,6 +2,8 @@ import 'package:fldraw/fldraw.dart';
 import 'package:fldraw/src/constants.dart';
 import 'package:fldraw/src/core/utils/renderbox.dart';
 import 'package:fldraw/src/gen/assets.gen.dart';
+import 'package:fldraw/src/models/drawing_entities.dart';
+import 'package:fldraw/src/ui/shared/line_style_editor.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -267,6 +269,21 @@ class FlToolbar extends StatelessWidget {
                 ),
               ],
             ),
+            Gap(16),
+            Builder(
+              builder: (context) {
+                return _LineStyleSelector(
+                  lineStyle: state.lineStyle,
+                  onLineStyleChanged: (lineStyle) {
+                    toolBloc.add(LineStyleChanged(lineStyle));
+                  },
+                  fillStyle: state.fillStyle,
+                  onFillStyleChanged: (fillStyle) {
+                    toolBloc.add(FillStyleChanged(fillStyle));
+                  },
+                );
+              },
+            ),
           ],
         );
       },
@@ -375,5 +392,65 @@ class FlToolbar extends StatelessWidget {
         canvasBloc.add(DrawingObjectAdded(newObject));
       }
     });
+  }
+}
+
+class _LineStyleSelector extends StatelessWidget {
+  final LineStyle lineStyle;
+  final ValueChanged<LineStyle> onLineStyleChanged;
+  final FillStyle fillStyle;
+  final ValueChanged<FillStyle> onFillStyleChanged;
+
+  const _LineStyleSelector({
+    required this.lineStyle,
+    required this.onLineStyleChanged,
+    required this.fillStyle,
+    required this.onFillStyleChanged,
+  });
+
+  void _showLineStylePopover(BuildContext context) {
+    showPopover(
+      context: context,
+      alignment: Alignment.topCenter,
+      offset: const Offset(0, 8),
+      builder: (context) {
+        return LineStyleEditor(
+          initialStyle: lineStyle,
+          onChanged: onLineStyleChanged,
+          initialFillStyle: fillStyle,
+          onFillChanged: onFillStyleChanged,
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton.outline(
+      size: ButtonSize.large,
+      onPressed: () => _showLineStylePopover(context),
+      icon: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(
+            Icons.format_color_fill,
+            size: 16,
+            color: context.theme.colorScheme.foreground,
+          ),
+          Positioned(
+            bottom: 2,
+            left: 2,
+            right: 2,
+            child: Container(
+              height: 3,
+              decoration: BoxDecoration(
+                color: lineStyle.color.withValues(alpha: lineStyle.opacity),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

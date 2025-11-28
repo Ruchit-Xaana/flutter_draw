@@ -8,6 +8,8 @@ export 'package:fldraw/src/models/styles.dart';
 
 export 'package:fldraw/src/ui/canvas/fl_draw_canvas.dart';
 export 'package:fldraw/src/ui/nodes/builders.dart';
+export 'package:fldraw/src/ui/shared/line_style_editor.dart';
+export 'package:fldraw/src/ui/shared/side_panel.dart';
 export 'package:fldraw/src/ui/shared/toolbar.dart';
 export 'package:fldraw/src/ui/shared/history_panel.dart';
 export 'package:fldraw/src/ui/shared/fldraw.dart';
@@ -16,6 +18,8 @@ export 'package:fldraw/src/models/drawing_entities.dart'
     show
         EditorTool,
         DrawingObject,
+        LineStyle,
+        FillStyle,
         CircleObject,
         RectangleObject,
         ArrowObject,
