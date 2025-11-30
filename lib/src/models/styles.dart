@@ -184,9 +184,9 @@ class FlDrawEditorStyle {
   final FlSelectionAreaStyle selectionAreaStyle;
 
   const FlDrawEditorStyle({
-    this.decoration = const BoxDecoration(color: Colors.black12),
+    this.decoration = const BoxDecoration(color: Colors.transparent),
     this.padding = const EdgeInsets.all(8.0),
-    this.gridStyle = const FlGridStyle(),
+    this.gridStyle = const FlGridStyle(showGrid: false),
     this.selectionAreaStyle = const FlSelectionAreaStyle(),
   });
 

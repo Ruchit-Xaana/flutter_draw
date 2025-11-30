@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
         },
         child: Stack(
           children: [
-            FlDrawCanvas(enableGrid: false),
+            FlDrawCanvas(),
             Align(
               alignment: Alignment.topCenter,
               child: Padding(

@@ -38,7 +38,6 @@ class FlDrawEditorRenderObjectWidget extends MultiChildRenderObjectWidget {
   final FragmentShader gridShader;
   final TempDrawingObject? tempDrawingObject;
   final Rect selectionArea;
-  final bool enableGrid;
   final FlNodeHeaderBuilder? headerBuilder;
   final FlNodeBuilder? nodeBuilder;
   final Offset? snapHandlePosition;
@@ -51,7 +50,6 @@ class FlDrawEditorRenderObjectWidget extends MultiChildRenderObjectWidget {
     required this.gridShader,
     this.tempDrawingObject,
     required this.selectionArea,
-    required this.enableGrid,
     this.headerBuilder,
     this.nodeBuilder,
     this.snapHandlePosition,
@@ -73,7 +71,6 @@ class FlDrawEditorRenderObjectWidget extends MultiChildRenderObjectWidget {
     return FlDrawEditorRenderBox(
       style: style,
       gridShader: gridShader,
-      enableGrid: enableGrid,
       canvasState: canvasState,
       selectionState: selectionState,
       selectionArea: selectionArea,
@@ -118,7 +115,6 @@ class FlDrawEditorRenderBox extends RenderBox
   FlDrawEditorRenderBox({
     required FlDrawEditorStyle style,
     required FragmentShader gridShader,
-    required bool enableGrid,
     required CanvasState canvasState,
     required SelectionState selectionState,
     required Rect selectionArea,
@@ -130,9 +126,7 @@ class FlDrawEditorRenderBox extends RenderBox
        _canvasState = canvasState,
        _selectionState = selectionState,
        _selectionArea = selectionArea {
-    if (enableGrid) {
-      _loadGridShader();
-    }
+    _loadGridShader();
     updateNodes(nodesData);
   }
 
