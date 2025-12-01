@@ -4,6 +4,7 @@ import 'dart:html' as html; // For web download
 import 'package:example/gen/assets.gen.dart';
 import 'package:fldraw/fldraw.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shadcn;
 
 void main() {
   runApp(const MyApp());
@@ -95,6 +96,9 @@ class _HomePageState extends State<HomePage> {
       ),
       body: FlDraw(
         controller: controller,
+        initialToolState: ToolState(
+          lineStyle: LineStyle(color: shadcn.Colors.blue),
+        ),
         onCanvasStateChanged: (state) {
           print("====== CANVAS ======");
           print(state.drawingObjects);

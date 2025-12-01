@@ -10,6 +10,7 @@ class FlDraw extends StatefulWidget {
   final Widget child;
   final ThemeData? theme;
   final FlDrawController? controller;
+  final ToolState? initialToolState;
   final Function(FlDrawController)? onControllerCreated;
   final void Function(CanvasState)? onCanvasStateChanged;
   final void Function(SelectionState)? onSelectionStateChanged;
@@ -20,6 +21,7 @@ class FlDraw extends StatefulWidget {
     required this.child,
     this.controller,
     this.theme,
+    this.initialToolState,
     this.onCanvasStateChanged,
     this.onSelectionStateChanged,
     this.onToolStateChanged,
@@ -47,7 +49,9 @@ class _FlDrawState extends State<FlDraw> {
     super.initState();
     _canvasBloc = CanvasBloc();
     _selectionBloc = SelectionBloc();
-    _toolBloc = ToolBloc();
+    _toolBloc = widget.initialToolState != null
+        ? ToolBloc(initialState: widget.initialToolState!)
+        : ToolBloc();
 
     if (widget.controller == null) {
       _controller = FlDrawController();
