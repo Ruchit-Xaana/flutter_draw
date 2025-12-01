@@ -409,6 +409,7 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
       'drawingObjects': state.drawingObjects.values
           .map((obj) => obj.toJson())
           .toList(),
+      'drawingObjectOrder': state.drawingObjectOrder,
     };
     event.onSave(jsonData);
     //showNodeEditorSnackbar('Project saved.', SnackbarType.success);
@@ -430,7 +431,6 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
 
       final drawingObjectsList = (event.data['drawingObjects'] as List)
           .map((json) {
-            // This logic can be moved to a factory in DrawingObject
             switch (json['type']) {
               case 'rectangle':
                 return RectangleObject.fromJson(json);
@@ -454,12 +454,17 @@ class CanvasBloc extends Bloc<CanvasEvent, CanvasState> {
           .toList();
       final drawingObjects = {for (var obj in drawingObjectsList) obj.id: obj};
 
+      final drawingObjectOrder =
+          (event.data['drawingObjectOrder'] as List?)?.cast<String>() ??
+          drawingObjects.keys.toList();
+
       emit(
         CanvasState(
           viewportOffset: offset,
           viewportZoom: zoom,
           nodes: nodes,
           drawingObjects: drawingObjects,
+          drawingObjectOrder: drawingObjectOrder,
         ),
       );
     } catch (e, s) {

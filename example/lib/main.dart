@@ -36,6 +36,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late List<String> svgs;
   FlDrawController controller = FlDrawController();
+  Map<String, dynamic>? loadedProjectData;
 
   @override
   void initState() {
@@ -77,6 +78,64 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> saveProject() async {
+    try {
+      controller.saveProject((data) {
+        final jsonStr = jsonEncode(data);
+        final bytes = Uint8List.fromList(utf8.encode(jsonStr));
+        final blob = html.Blob([bytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute(
+            'download',
+            'fldraw_project_${DateTime.now().millisecondsSinceEpoch}.json',
+          )
+          ..click();
+        html.Url.revokeObjectUrl(url);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Project saved successfully!')),
+        );
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving project: $e')));
+    }
+  }
+
+  Future<void> loadProject() async {
+    try {
+      final input = html.FileUploadInputElement();
+      input.accept = '.json';
+      input.click();
+      input.onChange.listen((event) {
+        final file = input.files?.first;
+        if (file != null) {
+          final reader = html.FileReader();
+          reader.readAsText(file);
+          reader.onLoadEnd.listen((e) {
+            try {
+              final jsonStr = reader.result as String;
+              final data = jsonDecode(jsonStr) as Map<String, dynamic>;
+              controller.loadProject(data);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Project loaded successfully!')),
+              );
+            } catch (err) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error loading project: $err')),
+              );
+            }
+          });
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading project: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +150,22 @@ class _HomePageState extends State<HomePage> {
               constraints: const BoxConstraints(maxHeight: 250, maxWidth: 250),
               child: HistoryPanel(controller: controller),
             ),
+          ),
+          const SizedBox(height: 12),
+          // Save Project button
+          FloatingActionButton(
+            heroTag: 'saveProject',
+            onPressed: saveProject,
+            tooltip: 'Save Project',
+            child: const Icon(Icons.save),
+          ),
+          const SizedBox(height: 12),
+          // Load Project button
+          FloatingActionButton(
+            heroTag: 'loadProject',
+            onPressed: loadProject,
+            tooltip: 'Load Project',
+            child: const Icon(Icons.folder_open),
           ),
         ],
       ),
