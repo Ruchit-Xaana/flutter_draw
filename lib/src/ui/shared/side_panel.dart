@@ -30,8 +30,21 @@ class StyleSidePanel extends StatelessWidget {
               TextStyleEditor(
                 initialStyle: obj.style,
                 onChanged: (newStyle) {
+                  final textPainter = TextPainter(
+                    text: TextSpan(text: obj.text, style: newStyle),
+                    textDirection: TextDirection.ltr,
+                  )..layout();
+
+                  final newRect = Rect.fromLTWH(
+                    obj.rect.left,
+                    obj.rect.top,
+                    textPainter.width,
+                    textPainter.height,
+                  );
                   context.read<CanvasBloc>().add(
-                    DrawingObjectUpdated(obj.copyWith(style: newStyle)),
+                    DrawingObjectUpdated(
+                      obj.copyWith(rect: newRect, style: newStyle),
+                    ),
                   );
                 },
               ),

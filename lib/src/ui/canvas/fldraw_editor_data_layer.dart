@@ -549,21 +549,25 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       if (!alreadySelected) {
         final nodeIds = isNode ? {hitObjectId} : <String>{};
         final drawingObjectIds = !isNode ? {hitObjectId} : <String>{};
-
-        if (isShiftPressed) {
-          _selectionBloc.add(
-            SelectionObjectsAdded(
-              nodeIds: nodeIds,
-              drawingObjectIds: drawingObjectIds,
-            ),
-          );
+        final obj = _canvasBloc.state.drawingObjects[hitObjectId];
+        if (obj is TextObject) {
+          _beginTextEditing(existingObject: obj);
         } else {
-          _selectionBloc.add(
-            SelectionReplaced(
-              nodeIds: nodeIds,
-              drawingObjectIds: drawingObjectIds,
-            ),
-          );
+          if (isShiftPressed) {
+            _selectionBloc.add(
+              SelectionObjectsAdded(
+                nodeIds: nodeIds,
+                drawingObjectIds: drawingObjectIds,
+              ),
+            );
+          } else {
+            _selectionBloc.add(
+              SelectionReplaced(
+                nodeIds: nodeIds,
+                drawingObjectIds: drawingObjectIds,
+              ),
+            );
+          }
         }
       }
       _totalDragDelta = 0.0;
@@ -1327,8 +1331,10 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
     if (existingObject == null && at == null) return;
 
     final TextObject object;
+    final bool isNewObject;
     if (existingObject != null) {
       object = existingObject;
+      isNewObject = false;
       _selectionBloc.add(SelectionReplaced(drawingObjectIds: {object.id}));
     } else {
       const initialText = 'Text';
@@ -1352,6 +1358,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
         text: initialText,
         style: initialStyle,
       );
+      isNewObject = true;
     }
 
     setState(() {
@@ -1371,6 +1378,11 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       });
 
       if (newText.trim().isEmpty) {
+        if (!isNewObject) {
+          _canvasBloc.add(
+            ObjectsRemoved(nodeIds: {}, drawingObjectIds: {object.id}),
+          );
+        }
       } else {
         final textPainter = TextPainter(
           text: TextSpan(text: newText, style: object.style),
@@ -1384,7 +1396,11 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
           textPainter.width,
           textPainter.height,
         );
-        _canvasBloc.add(DrawingObjectAdded(object));
+        if (isNewObject) {
+          _canvasBloc.add(DrawingObjectAdded(object));
+        } else {
+          setState(() {});
+        }
       }
 
       // focusNode.dispose();
