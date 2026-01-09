@@ -21,6 +21,26 @@ class StyleSidePanel extends StatelessWidget {
 
     if (obj == null) return const SizedBox.shrink();
 
+    if (obj is TextObject) {
+      return SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextStyleEditor(
+                initialStyle: obj.style,
+                onChanged: (newStyle) {
+                  context.read<CanvasBloc>().add(
+                    DrawingObjectUpdated(obj.copyWith(style: newStyle)),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     LineStyle? lineStyle;
     FillStyle? fillStyle;
     if (obj is RectangleObject) {

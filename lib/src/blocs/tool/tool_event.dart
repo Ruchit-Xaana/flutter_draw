@@ -36,3 +36,13 @@ class FillStyleChanged extends ToolEvent {
   @override
   List<Object> get props => [fillStyle];
 }
+
+/// Event dispatched when text style is changed (for text tool / text objects).
+class TextStyleChanged extends ToolEvent {
+  final TextStyle textStyle;
+
+  const TextStyleChanged(this.textStyle);
+
+  @override
+  List<Object> get props => [textStyle];
+}

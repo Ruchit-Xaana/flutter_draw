@@ -1332,10 +1332,10 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       _selectionBloc.add(SelectionReplaced(drawingObjectIds: {object.id}));
     } else {
       const initialText = 'Text';
-      const initialStyle = TextStyle(fontSize: 16, color: Colors.white);
+      final initialStyle = _toolBloc.state.textStyle;
 
       final textPainter = TextPainter(
-        text: const TextSpan(text: initialText, style: initialStyle),
+        text: TextSpan(text: initialText, style: initialStyle),
         textDirection: TextDirection.ltr,
       )..layout();
 
