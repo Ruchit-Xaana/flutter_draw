@@ -1352,8 +1352,6 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
         text: initialText,
         style: initialStyle,
       );
-      _canvasBloc.add(DrawingObjectAdded(object));
-      _selectionBloc.add(SelectionReplaced(drawingObjectIds: {object.id}));
     }
 
     setState(() {
@@ -1373,24 +1371,20 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
       });
 
       if (newText.trim().isEmpty) {
-        _canvasBloc.add(
-          ObjectsRemoved(nodeIds: {}, drawingObjectIds: {object.id}),
-        );
       } else {
         final textPainter = TextPainter(
           text: TextSpan(text: newText, style: object.style),
           textDirection: TextDirection.ltr,
         )..layout();
 
-        setState(() {
-          object.text = newText;
-          object.rect = Rect.fromLTWH(
-            object.rect.left,
-            object.rect.top,
-            textPainter.width,
-            textPainter.height,
-          );
-        });
+        object.text = newText;
+        object.rect = Rect.fromLTWH(
+          object.rect.left,
+          object.rect.top,
+          textPainter.width,
+          textPainter.height,
+        );
+        _canvasBloc.add(DrawingObjectAdded(object));
       }
 
       // focusNode.dispose();
@@ -1467,6 +1461,11 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
     );
 
     Overlay.of(context).insert(overlayEntry);
+
+    // Request focus after the frame is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      focusNode.requestFocus();
+    });
   }
 
   @override
