@@ -1427,7 +1427,7 @@ class _FlDrawEditorDataLayerState extends State<FlDrawEditorDataLayer>
               (worldPoint.dx + offset.dx) * zoom + editorSize.width / 2;
           final screenPointY =
               (worldPoint.dy + offset.dy) * zoom + editorSize.height / 2;
-          return Offset(screenPointX, screenPointY) + editorGlobalOffset;
+          return Offset(screenPointX, screenPointY) + Offset(4, 4);
         }
 
         final globalPosition = worldToGlobal(object.rect.topLeft);
